@@ -12,6 +12,7 @@ import java.util.Map;
 public class UserRepositoryImpl implements UserRepository {
     private final Map<Long, User> userMap = new HashMap<>();
     private Long currId = 0L;
+
     @Override
     public User createUser(User user) {
         currId++;
@@ -41,5 +42,4 @@ public class UserRepositoryImpl implements UserRepository {
     public User deleteUser(Long userId) {
         return userMap.remove(userId);
     }
-
 }
