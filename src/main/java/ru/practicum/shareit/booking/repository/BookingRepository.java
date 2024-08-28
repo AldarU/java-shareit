@@ -12,6 +12,7 @@ import java.util.List;
 
 @Repository
 public interface BookingRepository extends JpaRepository<Booking, Long> {
+
     @Modifying
     @Query("UPDATE Booking b "
             + "SET b.status = :status  "
@@ -21,10 +22,15 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
     //*******************************************************//
 
     List<Booking> findByBookerIdOrderByStartDesc(Long id);
+
     List<Booking> findByBookerIdAndStatusIsOrderByStartDesc(Long id, Status status);
+
     List<Booking> findByBookerIdAndEndIsAfterAndStartIsBeforeOrderByStartDesc(Long id, LocalDateTime end, LocalDateTime start);
+
     List<Booking> findByBookerIdAndEndIsBeforeOrderByStartDesc(Long id, LocalDateTime time);
+
     List<Booking> findByBookerIdAndStartIsAfterOrderByStartDesc(Long id, LocalDateTime time);
+
     List<Booking> findByBookerIdAndStartIsAfterAndStatusIsOrderByStartDesc(Long bookerId, LocalDateTime start, Status status);
 
     //*******************************************************//
