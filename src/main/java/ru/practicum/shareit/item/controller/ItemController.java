@@ -4,6 +4,7 @@ import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
+import ru.practicum.shareit.comments.dto.CommentDto;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.service.ItemService;
 import java.util.List;
@@ -43,5 +44,11 @@ public class ItemController {
     public List<ItemDto> getItemsByName(@RequestParam String text) {
         log.info("Get item by name {}", text);
         return itemService.getItemsByName(text);
+    }
+
+    @PostMapping("/{itemId}/comment")
+    public CommentDto createComment(@RequestHeader("X-Sharer-User-Id") Long userId, @PathVariable Long itemId, @RequestBody CommentDto commentDto) {
+        log.info("Received a POST-request to the endpoint: '/items/{itemId}/comment' to add a comment");
+        return itemService.addComment(itemId, userId, commentDto);
     }
 }

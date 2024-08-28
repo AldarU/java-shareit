@@ -1,12 +1,16 @@
 package ru.practicum.shareit.user.service;
 
 import lombok.AllArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import ru.practicum.shareit.exceptions.AlreadyException;
+import org.springframework.web.server.ResponseStatusException;
+import ru.practicum.shareit.user.dto.UserDto;
+import ru.practicum.shareit.user.mapper.UserMapper;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.repository.UserRepository;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @AllArgsConstructor
@@ -14,56 +18,42 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
 
     @Override
-    public User createUser(User user) {
-        if (isEmailDuplicate(user.getEmail()) != null) {
-            throw new AlreadyException("User с таким email уже существует.");
-        }
-
-        return userRepository.createUser(user);
+    public UserDto createUser(User user) {
+        return UserMapper.buildUserDto(userRepository.save(user));
     }
 
     @Override
-    public User updateUser(User user, Long id) {
-        user.setId(id);
+    public UserDto updateUser(User user, Long id) {
+        User oldUser = userRepository.getReferenceById(id);
 
         if (user.getName() == null) {
-            user.setName(userRepository.getUserById(id).getName());
+            user.setName(oldUser.getName());
         }
         if (user.getEmail() == null) {
-            user.setEmail(userRepository.getUserById(id).getEmail());
+            user.setEmail(oldUser.getEmail());
         }
+        user.setId(id);
 
-        if (isEmailDuplicate(user.getEmail()) != null && !user.getId().equals(isEmailDuplicate(user.getEmail()))) {
-            throw new AlreadyException("User с таким email уже существует.");
-        }
-
-        return userRepository.updateUser(user, id);
+        return UserMapper.buildUserDto(userRepository.save(user));
     }
 
     @Override
-    public List<User> getUsers() {
-        return userRepository.getUsers();
+    public List<UserDto> getUsers() {
+        return userRepository.findAll()
+                .stream()
+                .map(user -> UserMapper.buildUserDto(user))
+                .collect(Collectors.toList());
     }
 
     @Override
-    public User getUserById(Long id) {
-        return userRepository.getUserById(id);
+    public UserDto getUserById(Long id) {
+        return UserMapper.buildUserDto(userRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "This userId not found")));
     }
 
     @Override
-    public User deleteUser(Long userId) {
-        return userRepository.deleteUser(userId);
+    public void deleteUser(Long userId) {
+        userRepository.deleteById(userId);
     }
 
-    private Long isEmailDuplicate(String inEmail) {
-        List<User> userList = userRepository.getUsers();
-
-        for (User user : userList) {
-            String email = user.getEmail();
-            if (email.equals(inEmail)) {
-                return user.getId();
-            }
-        }
-        return null;
-    }
 }
