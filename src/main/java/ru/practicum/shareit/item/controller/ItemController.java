@@ -28,10 +28,10 @@ public class ItemController {
         return itemService.updateItem(item, id, ownerId);
     }
 
-    @GetMapping("/{id}")
-    public ItemDto getItemById(@PathVariable Long id) {
-        log.info("Get item by id {}", id);
-        return itemService.getItemById(id);
+    @GetMapping("/{itemId}")
+    public ItemDto getItemById(@PathVariable Long itemId, @RequestHeader("X-Sharer-User-Id") Long userId) {
+        log.info("Get item by id {} {}", itemId, userId);
+        return itemService.getItemById(itemId, userId);
     }
 
     @GetMapping

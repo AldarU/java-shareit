@@ -27,6 +27,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Service
@@ -59,7 +60,7 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     @Transactional
-    public ItemDto updateItem(ItemDto item, Long id, Long ownerId) {
+    public ItemDto updateItem(ItemDto item, Long userId, Long ownerId) {
         if (item.getName() == null) {
             item.setName(item.getName());
         }
@@ -70,12 +71,12 @@ public class ItemServiceImpl implements ItemService {
             item.setAvailable(item.getAvailable());
         }
 
-        item.setId(id);
+        item.setId(userId);
         item.setOwnerId(ownerId);
         item.setComments(CommentMapper.toDto(commentRepository.findByItemId(item.getId())));
 
         if (userService.getUserById(ownerId) != null) {
-            Long oldOwnerItem = getItemById(id).getOwnerId();
+            Long oldOwnerItem = getItemById(userId, ownerId).getOwnerId();
             if (oldOwnerItem.equals(ownerId)) {
                 return itemMapper.buildItemDto(itemRepository.save(itemMapper.buildItem(item)));
             }
@@ -87,10 +88,13 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     @Transactional
-    public ItemDto getItemById(Long itemId) {
+    public ItemDto getItemById(Long itemId, Long userId) {
         ItemDto item = itemMapper.buildItemDto(itemRepository.findById(itemId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "This itemId not found")));
-        updateBookings(item);
+
+        if (Objects.equals(item.getOwnerId(), userId)) {
+            updateBookings(item);
+        }
 
         List<Comment> comments = commentRepository.findByItemId(item.getId());
         item.setComments(CommentMapper.toDto(comments));
@@ -101,11 +105,19 @@ public class ItemServiceImpl implements ItemService {
     @Override
     @Transactional
     public List<ItemDto> getOwnerItems(Long ownerId) {
-        return itemRepository
+        List<ItemDto> items = itemRepository
                 .findAllByOwnerId(ownerId)
                 .stream()
                 .map(ItemMapper::buildItemDto)
                 .collect(Collectors.toList());
+        List<ItemDto> newItemsList = new ArrayList<>();
+        items.stream()
+                .map(this::updateBookings)
+                .forEach(itemDto -> {CommentMapper.toDto(
+                        commentRepository.findByItemId(itemDto.getId()));
+                        newItemsList.add(itemDto);
+                });
+        return newItemsList;
     }
 
     @Override
@@ -166,10 +178,10 @@ public class ItemServiceImpl implements ItemService {
                 .filter(obj -> obj.getStart().isAfter(now))
                 .min(Comparator.comparing(Booking::getStart)).orElse(null);
         if (lastBooking != null) {
-            itemDto.setLastBooking(BookingMapper.buildBookingDto(lastBooking));
+            itemDto.setLastBooking(BookingMapper.buildItemBookingDto(lastBooking));
         }
         if (nextBooking != null) {
-            itemDto.setNextBooking(BookingMapper.buildBookingDto(nextBooking));
+            itemDto.setNextBooking(BookingMapper.buildItemBookingDto(nextBooking));
         }
         return itemDto;
     }

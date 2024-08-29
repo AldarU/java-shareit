@@ -33,7 +33,7 @@ public class BookingServiceImpl implements BookingService {
     @Transactional
     public BookingDto createBooking(ShortBookingDto smallBooking, Long bookerId) {
         User booker = UserMapper.buildUser(userService.getUserById(bookerId));
-        Item item = ItemMapper.buildItem(itemService.getItemById(smallBooking.getItemId()));
+        Item item = ItemMapper.buildItem(itemService.getItemById(smallBooking.getItemId(), bookerId));
 
         if (!item.getAvailable()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Item is not available");

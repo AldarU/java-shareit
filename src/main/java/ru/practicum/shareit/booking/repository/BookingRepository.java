@@ -16,24 +16,24 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
     @Modifying
     @Query("UPDATE Booking b "
             + "SET b.status = :status  "
-            + "WHERE b.id = :bookingId ")
-    void save(Long  bookingId, Status status);
-
-    //*******************************************************//
+            + "WHERE b.id = :bookingId")
+    void save(Long bookingId, Status status);
 
     List<Booking> findByBookerIdOrderByStartDesc(Long id);
 
     List<Booking> findByBookerIdAndStatusIsOrderByStartDesc(Long id, Status status);
 
-    List<Booking> findByBookerIdAndEndIsAfterAndStartIsBeforeOrderByStartDesc(Long id, LocalDateTime end, LocalDateTime start);
+    List<Booking> findByBookerIdAndEndIsAfterAndStartIsBeforeOrderByStartDesc(Long id,
+                                                                              LocalDateTime end,
+                                                                              LocalDateTime start);
 
     List<Booking> findByBookerIdAndEndIsBeforeOrderByStartDesc(Long id, LocalDateTime time);
 
     List<Booking> findByBookerIdAndStartIsAfterOrderByStartDesc(Long id, LocalDateTime time);
 
-    List<Booking> findByBookerIdAndStartIsAfterAndStatusIsOrderByStartDesc(Long bookerId, LocalDateTime start, Status status);
-
-    //*******************************************************//
+    List<Booking> findByBookerIdAndStartIsAfterAndStatusIsOrderByStartDesc(Long bookerId,
+                                                                           LocalDateTime start,
+                                                                           Status status);
 
     @Query("SELECT b FROM Booking b "
             + "INNER JOIN Item i ON b.item.id = i.id "
@@ -82,5 +82,8 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
             + "ORDER BY b.start DESC")
     List<Booking> findBookingsItem(Long itemId);
 
-    List<Booking> findByItemIdAndBookerIdAndStatusIsAndEndIsBefore(Long itemId, Long bookerId, Status status, LocalDateTime time);
+    List<Booking> findByItemIdAndBookerIdAndStatusIsAndEndIsBefore(Long itemId,
+                                                                   Long bookerId,
+                                                                   Status status,
+                                                                   LocalDateTime time);
 }

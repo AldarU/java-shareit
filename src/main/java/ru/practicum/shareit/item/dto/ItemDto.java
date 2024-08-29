@@ -6,6 +6,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import ru.practicum.shareit.booking.dto.BookingDto;
+import ru.practicum.shareit.booking.dto.ItemBookingDto;
 import ru.practicum.shareit.comments.dto.CommentDto;
 
 import java.util.List;
@@ -27,9 +28,9 @@ public class ItemDto {
 
     private Long ownerId;
 
-    private BookingDto lastBooking;
+    private ItemBookingDto lastBooking;
 
-    private BookingDto nextBooking;
+    private ItemBookingDto nextBooking;
 
     private List<CommentDto> comments;
 
