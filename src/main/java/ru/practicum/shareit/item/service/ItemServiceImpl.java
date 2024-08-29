@@ -113,7 +113,8 @@ public class ItemServiceImpl implements ItemService {
         List<ItemDto> newItemsList = new ArrayList<>();
         items.stream()
                 .map(this::updateBookings)
-                .forEach(itemDto -> {CommentMapper.toDto(
+                .forEach(itemDto -> {
+                    CommentMapper.toDto(
                         commentRepository.findByItemId(itemDto.getId()));
                         newItemsList.add(itemDto);
                 });
