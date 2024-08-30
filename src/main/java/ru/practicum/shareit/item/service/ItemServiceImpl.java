@@ -78,7 +78,7 @@ public class ItemServiceImpl implements ItemService {
         if (userService.getUserById(ownerId) != null) {
             Long oldOwnerItem = getItemById(userId, ownerId).getOwnerId();
             if (oldOwnerItem.equals(ownerId)) {
-                return itemMapper.buildItemDto(itemRepository.save(itemMapper.buildItem(item)));
+                return ItemMapper.buildItemDto(itemRepository.save(ItemMapper.buildItem(item)));
             }
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Can not update with other owner");
         } else {
@@ -89,7 +89,7 @@ public class ItemServiceImpl implements ItemService {
     @Override
     @Transactional
     public ItemDto getItemById(Long itemId, Long userId) {
-        ItemDto item = itemMapper.buildItemDto(itemRepository.findById(itemId)
+        ItemDto item = ItemMapper.buildItemDto(itemRepository.findById(itemId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "This itemId not found")));
 
         if (Objects.equals(item.getOwnerId(), userId)) {
