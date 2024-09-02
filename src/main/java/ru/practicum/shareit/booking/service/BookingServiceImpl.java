@@ -32,20 +32,20 @@ public class BookingServiceImpl implements BookingService {
     @Override
     @Transactional
     public BookingDto createBooking(ShortBookingDto smallBooking, Long bookerId) {
+        if (smallBooking.getEnd().isBefore(smallBooking.getStart()) ||
+                smallBooking.getEnd().equals(smallBooking.getStart())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
+        }
         User booker = UserMapper.buildUser(userService.getUserById(bookerId));
         Item item = ItemMapper.buildItem(itemService.getItemById(smallBooking.getItemId(), bookerId));
-
+        if (itemService.getOwnerId(item.getId()).equals(bookerId)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
+        }
         if (!item.getAvailable()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Item is not available");
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND);
         } else {
-            Booking booking = Booking.builder()
-                    .start(smallBooking.getStart())
-                    .end(smallBooking.getEnd())
-                    .item(item)
-                    .booker(booker)
-                    .status(Status.WAITING)
-                    .build();
-
+            Booking booking = Booking.builder().start(smallBooking.getStart()).end(smallBooking.getEnd())
+                    .item(item).booker(booker).status(Status.WAITING).build();
             return BookingMapper.buildBookingDto(bookingRepository.save(booking));
         }
     }

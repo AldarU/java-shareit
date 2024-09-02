@@ -43,18 +43,13 @@ public class ItemServiceImpl implements ItemService {
     @Override
     @Transactional
     public ItemDto createItem(ItemDto itemDto, Long ownerId) {
-        if (userService.getUserById(ownerId) != null) {
-            Item item = ItemMapper.buildItem(itemDto);
-            item.setOwnerId(ownerId);
-            item.setItemRequest(itemDto.getRequestId() != null ?
-                    RequestMapper.buildItemRequest(requestService.getById(itemDto.getRequestId(), ownerId)) : null);
-            return ItemMapper.buildItemDto(itemRepository.save(item));
-        } else {
-            if (!itemDto.getAvailable()) {
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Available null");
-            }
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User не найден");
-        }
+        userService.getUserById(ownerId);
+        Item item = ItemMapper.buildItem(itemDto);
+        item.setOwnerId(ownerId);
+        item.setItemRequest(itemDto.getRequestId() != null ?
+                RequestMapper.buildItemRequest(requestService.getById(ownerId, itemDto.getRequestId())) : null);
+
+        return ItemMapper.buildItemDto(itemRepository.save(item));
     }
 
 
@@ -64,29 +59,19 @@ public class ItemServiceImpl implements ItemService {
         Item item = itemRepository.findById(itemId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
         userService.getUserById(ownerId);
-        if (itemDto.getName() == null) {
-            itemDto.setName(item.getName());
+        if (!item.getOwnerId().equals(ownerId)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
         }
-        if (itemDto.getDescription() == null) {
-            itemDto.setDescription(item.getDescription());
+        if (itemDto.getName() != null) {
+            item.setName(itemDto.getName());
         }
-        if (itemDto.getAvailable() == null) {
-            itemDto.setAvailable(item.getAvailable());
+        if (itemDto.getDescription() != null) {
+            item.setDescription(itemDto.getDescription());
         }
-
-        itemDto.setId(itemId);
-        itemDto.setOwnerId(ownerId);
-        itemDto.setComments(CommentMapper.toDto(commentRepository.findByItemId(itemDto.getId())));
-
-        if (userService.getUserById(ownerId) != null) {
-            Long oldOwnerItem = getItemById(itemId, ownerId).getOwnerId();
-            if (oldOwnerItem.equals(ownerId)) {
-                return ItemMapper.buildItemDto(itemRepository.save(ItemMapper.buildItem(itemDto)));
-            }
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Can not update with other owner");
-        } else {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User не найден");
+        if (itemDto.getAvailable() != null) {
+            item.setAvailable(itemDto.getAvailable());
         }
+        return ItemMapper.buildItemDto(itemRepository.save(item));
     }
 
     @Override
