@@ -60,25 +60,28 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     @Transactional
-    public ItemDto updateItem(ItemDto item, Long userId, Long ownerId) {
-        if (item.getName() == null) {
-            item.setName(item.getName());
+    public ItemDto updateItem(ItemDto itemDto, Long itemId, Long ownerId) {
+        Item item = itemRepository.findById(itemId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+        userService.getUserById(ownerId);
+        if (itemDto.getName() == null) {
+            itemDto.setName(item.getName());
         }
-        if (item.getDescription() == null) {
-            item.setDescription(item.getDescription());
+        if (itemDto.getDescription() == null) {
+            itemDto.setDescription(item.getDescription());
         }
-        if (item.getAvailable() == null) {
-            item.setAvailable(item.getAvailable());
+        if (itemDto.getAvailable() == null) {
+            itemDto.setAvailable(item.getAvailable());
         }
 
-        item.setId(userId);
-        item.setOwnerId(ownerId);
-        item.setComments(CommentMapper.toDto(commentRepository.findByItemId(item.getId())));
+        itemDto.setId(itemId);
+        itemDto.setOwnerId(ownerId);
+        itemDto.setComments(CommentMapper.toDto(commentRepository.findByItemId(itemDto.getId())));
 
         if (userService.getUserById(ownerId) != null) {
-            Long oldOwnerItem = getItemById(userId, ownerId).getOwnerId();
+            Long oldOwnerItem = getItemById(itemId, ownerId).getOwnerId();
             if (oldOwnerItem.equals(ownerId)) {
-                return ItemMapper.buildItemDto(itemRepository.save(ItemMapper.buildItem(item)));
+                return ItemMapper.buildItemDto(itemRepository.save(ItemMapper.buildItem(itemDto)));
             }
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Can not update with other owner");
         } else {

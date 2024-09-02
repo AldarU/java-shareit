@@ -9,6 +9,6 @@ spring:
       mode: ALWAYS
   datasource:
     url: jdbc:postgresql://localhost:5432/shareit
-    username: sa
-    password: password
+    username: shareit
+    password: shareit
     driverClassName: org.postgresql.Driver
