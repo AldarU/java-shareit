@@ -1,16 +1,15 @@
 package ru.practicum.shareit.booking.service;
 
 import lombok.AllArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
 import ru.practicum.shareit.booking.dto.BookingDto;
 import ru.practicum.shareit.booking.dto.ShortBookingDto;
 import ru.practicum.shareit.booking.mapper.BookingMapper;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.model.Status;
 import ru.practicum.shareit.booking.repository.BookingRepository;
+import ru.practicum.shareit.exception.*;
 import ru.practicum.shareit.item.mapper.ItemMapper;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.service.ItemService;
@@ -35,18 +34,18 @@ public class BookingServiceImpl implements BookingService {
         if (smallBooking.getEnd().isBefore(LocalDateTime.now())
                 || smallBooking.getStart().isBefore(LocalDateTime.now())
                 || smallBooking.getStart().isEqual(smallBooking.getEnd())) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
+            throw new TimeDataException("Invalid time");
         }
 
         User booker = UserMapper.buildUser(userService.getUserById(bookerId));
         Item item = ItemMapper.buildItem(itemService.getItemById(smallBooking.getItemId(), bookerId));
 
         if (itemService.getOwnerId(item.getId()).equals(bookerId)) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
+            throw new OperationAccessException("Invalid owner");
         }
 
         if (!item.getAvailable()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
+            throw new NotAvailableException("Item is not available");
         } else {
             Booking booking = Booking.builder().start(smallBooking.getStart()).end(smallBooking.getEnd())
                     .item(item).booker(booker).status(Status.WAITING).build();
@@ -60,7 +59,7 @@ public class BookingServiceImpl implements BookingService {
         Booking booking = bookingRepository.getReferenceById(bookingId);
 
         if (!itemService.getOwnerId(booking.getItem().getId()).equals(userId)) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "BAD REQUEST approveBooking");
+            throw new AlreadyExistsException("BAD REQUEST approveBooking");
         }
 
         if (approve) {
@@ -77,7 +76,7 @@ public class BookingServiceImpl implements BookingService {
     @Transactional
     public BookingDto findBookingById(Long bookingId, Long userId) {
         return BookingMapper.buildBookingDto(bookingRepository.findById(bookingId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Booking not found.")));
+                .orElseThrow(() -> new NotFoundException("Booking not found.")));
     }
 
     @Override
@@ -112,7 +111,7 @@ public class BookingServiceImpl implements BookingService {
                         bookingRepository.findByBookerIdAndStatusIsOrderByStartDesc(userId, Status.REJECTED));
             }
         }
-        throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "BAD REQUEST IN FindBookingsByUser");
+        throw new BadRequestException("BAD REQUEST IN FindBookingsByUser");
     }
 
     @Override
@@ -141,6 +140,6 @@ public class BookingServiceImpl implements BookingService {
                 return BookingMapper.buildBookingDto(
                         bookingRepository.findRejectedBookingsOwner(ownerId, Status.REJECTED));
         }
-        throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "BAD REQUEST IN FindBookingsByOwner");
+        throw new BadRequestException("BAD REQUEST IN FindBookingsByOwner");
     }
 }

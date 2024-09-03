@@ -1,10 +1,8 @@
 package ru.practicum.shareit.item.service;
 
 import lombok.AllArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
 import ru.practicum.shareit.booking.mapper.BookingMapper;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.model.Status;
@@ -13,6 +11,9 @@ import ru.practicum.shareit.comments.dto.CommentDto;
 import ru.practicum.shareit.comments.mapper.CommentMapper;
 import ru.practicum.shareit.comments.model.Comment;
 import ru.practicum.shareit.comments.repository.CommentRepository;
+import ru.practicum.shareit.exception.NotAvailableException;
+import ru.practicum.shareit.exception.NotFoundException;
+import ru.practicum.shareit.exception.OperationAccessException;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.mapper.ItemMapper;
 import ru.practicum.shareit.item.model.Item;
@@ -57,10 +58,10 @@ public class ItemServiceImpl implements ItemService {
     @Transactional
     public ItemDto updateItem(ItemDto itemDto, Long itemId, Long ownerId) {
         Item item = itemRepository.findById(itemId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+                .orElseThrow(() -> new NotFoundException("Item is not found"));
         userService.getUserById(ownerId);
         if (!item.getOwnerId().equals(ownerId)) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
+            throw new OperationAccessException("User is not owner");
         }
         if (itemDto.getName() != null) {
             item.setName(itemDto.getName());
@@ -78,7 +79,7 @@ public class ItemServiceImpl implements ItemService {
     @Transactional
     public ItemDto getItemById(Long itemId, Long userId) {
         ItemDto item = ItemMapper.buildItemDto(itemRepository.findById(itemId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "This itemId not found")));
+                .orElseThrow(() -> new NotFoundException("This itemId not found")));
 
         if (Objects.equals(item.getOwnerId(), userId)) {
             updateBookings(item);
@@ -128,7 +129,7 @@ public class ItemServiceImpl implements ItemService {
     @Transactional
     public Long getOwnerId(Long itemId) {
         return itemRepository.findById(itemId)
-                .get()
+                .orElseThrow(() -> new NotFoundException("Item ID is not found"))
                 .getOwnerId();
     }
 
@@ -136,14 +137,14 @@ public class ItemServiceImpl implements ItemService {
     @Transactional
     public CommentDto addComment(Long itemId, Long userId, CommentDto commentDto) {
         Item item = itemRepository.findById(itemId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "ItemID not found."));
+                .orElseThrow(() -> new NotFoundException("Item ID is not found."));
         User user = UserMapper.buildUser(userService.getUserById(userId));
 
         List<Booking> bookings = bookingRepository
                 .findByItemIdAndBookerIdAndStatusIsAndEndIsBefore(itemId, userId, Status.APPROVED, LocalDateTime.now());
 
         if (!(!bookings.isEmpty() && bookings.get(0).getStart().isBefore(LocalDateTime.now()))) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
+            throw new NotAvailableException("Booking not found");
         }
 
         Comment comment = CommentMapper.buildComment(commentDto);

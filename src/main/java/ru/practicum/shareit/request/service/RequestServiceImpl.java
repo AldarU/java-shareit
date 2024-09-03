@@ -1,10 +1,9 @@
 package ru.practicum.shareit.request.service;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
+import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.item.repository.ItemRepository;
 import ru.practicum.shareit.request.dto.RequestDto;
 import ru.practicum.shareit.request.mapper.RequestMapper;
@@ -39,7 +38,7 @@ public class RequestServiceImpl implements RequestService {
     @Transactional
     public RequestDto getById(Long userId, Long requestId) {
         ItemRequest itemRequest = requestRepository.findById(requestId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+                .orElseThrow(() -> new NotFoundException("Request is not found"));
         itemRequest.setItems(itemRepository.findAllByItemRequest(itemRequest));
         RequestDto itemRequestDto = RequestMapper.buildItemRequestDto(itemRequest);
         itemRequestDto.setRequester(userService.getUserById(userId));

@@ -1,9 +1,8 @@
 package ru.practicum.shareit.user.service;
 
 import lombok.AllArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
+import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.mapper.UserMapper;
 import ru.practicum.shareit.user.model.User;
@@ -48,7 +47,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserDto getUserById(Long id) {
         return UserMapper.buildUserDto(userRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "This userId not found")));
+                .orElseThrow(() -> new NotFoundException("This userId not found")));
     }
 
     @Override
