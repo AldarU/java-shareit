@@ -18,33 +18,38 @@ public class BookingController {
     private final BookingService bookingService;
 
     @PostMapping
-    private BookingDto createBooking(@Valid @RequestBody ShortBookingDto smallBooking,
+    public BookingDto createBooking(@Valid @RequestBody ShortBookingDto smallBooking,
                                      @RequestHeader("X-Sharer-User-Id") Long bookerId) {
+        log.info("Create booking");
         return bookingService.createBooking(smallBooking, bookerId);
     }
 
     @PatchMapping("/{bookingId}")
-    private BookingDto approveBooking(@PathVariable long bookingId,
+    public BookingDto approveBooking(@PathVariable long bookingId,
                                            @RequestHeader("X-Sharer-User-Id") long userId,
                                            @RequestParam Boolean approved) {
+        log.info("Approve booking");
         return bookingService.approveBooking(bookingId, userId, approved);
     }
 
     @GetMapping("/{bookingId}")
-    private BookingDto findBookingById(@PathVariable Long bookingId,
+    public BookingDto findBookingById(@PathVariable Long bookingId,
                                             @RequestHeader("X-Sharer-User-Id") Long userId) {
+        log.info("Find booking by bookingId {} with userId {}", bookingId, userId);
         return bookingService.findBookingById(bookingId, userId);
     }
 
     @GetMapping
-    private List<BookingDto> findBookingsByUser(@RequestParam(defaultValue = "ALL") String state,
+    public List<BookingDto> findBookingsByUser(@RequestParam(defaultValue = "ALL") String state,
                                                 @RequestHeader("X-Sharer-User-Id") Long userId) {
+        log.info("Find booking by userId {} with state {}", userId, state);
         return bookingService.findBookingsByUser(state, userId);
     }
 
     @GetMapping("/owner")
-    private List<BookingDto> findBookingsByOwner(@RequestParam(defaultValue = "ALL") String state,
+    public List<BookingDto> findBookingsByOwner(@RequestParam(defaultValue = "ALL") String state,
                                                       @RequestHeader("X-Sharer-User-Id") Long ownerId) {
+        log.info("Find booking by ownerId {} with state {}", ownerId, state);
         return bookingService.findBookingsByOwner(state, ownerId);
     }
 }
