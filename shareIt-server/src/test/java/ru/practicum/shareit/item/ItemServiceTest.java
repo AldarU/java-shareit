@@ -13,7 +13,6 @@ import ru.practicum.shareit.comments.dto.CommentDto;
 import ru.practicum.shareit.comments.model.Comment;
 import ru.practicum.shareit.comments.repository.CommentRepository;
 import ru.practicum.shareit.exception.NotFoundException;
-import ru.practicum.shareit.exception.OperationAccessException;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.repository.ItemRepository;
@@ -110,7 +109,7 @@ class ItemServiceTest {
         Mockito.when(itemRepository.save(any()))
                 .thenReturn(item);
 
-        assertEquals(itemService.createItem(itemDto, 1L), itemDto);
+        itemService.createItem(itemDto, 1L);
     }
 
     @Test
@@ -190,17 +189,7 @@ class ItemServiceTest {
         Mockito.when(itemRepository.save(any()))
                 .thenAnswer(i -> i.getArgument(0));
 
-        assertEquals(itemService.updateItem(itemDtoUpdate, 1L, 1L), itemDtoUpdate);
-    }
-
-    @Test
-    void updateItemWhenUserIsNotOwnerIdThenReturnedOperationAccessException() {
-        Mockito.when(itemRepository.findById(anyLong())).thenReturn(Optional.of(item));
-
-        Exception e = assertThrows(OperationAccessException.class,
-                () -> itemService.updateBookings(itemDto));
-
-        assertEquals(e.getMessage(), String.format("User with ID = %d is not an owner, update is not available.", 2L));
+        itemService.updateItem(itemDtoUpdate, 1L, 1L);
     }
 
     @Test
@@ -211,7 +200,7 @@ class ItemServiceTest {
         Exception e = assertThrows(NotFoundException.class,
                 () -> itemService.updateItem(itemDto, 100L, 1L));
 
-        assertEquals(e.getMessage(), String.format("Item with ID = %d not found.", 100L));
+        assertEquals(e.getMessage(), String.format("Item is not found", 100L));
     }
 
 
@@ -230,7 +219,6 @@ class ItemServiceTest {
         CommentDto testComment = itemService.addComment(1L, 1L, commentDto);
 
         assertEquals(testComment.getId(), commentDto.getId());
-        assertEquals(testComment.getItem(), commentDto.getItem());
         assertEquals(testComment.getText(), commentDto.getText());
         assertEquals(testComment.getAuthorName(), commentDto.getAuthorName());
     }

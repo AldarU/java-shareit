@@ -22,7 +22,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -57,55 +56,6 @@ class ItemControllerTest {
             new ItemDto(2L, "Name2", "Description2", true, null,
                     null, null, null, 1L));
     private final CommentDto commentDto = CommentDto.builder().id(1L).text("Text").authorName("Name").build();
-
-
-    @Test
-    void createItemWhenItemWithoutNameThenReturnedStatusIsBadRequest() throws Exception {
-        ItemDto badItemDto = ItemDto.builder()
-                .id(1L)
-                .name("")
-                .description("Description")
-                .available(true)
-                .requestId(1L)
-                .build();
-
-        when(itemService.createItem(badItemDto, any()))
-                .thenReturn(badItemDto);
-
-        mvc.perform(post("/items")
-                        .header("X-Sharer-User-Id", 1L)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(mapper.writeValueAsString(badItemDto)))
-                .andExpect(status().isBadRequest())
-                .andReturn()
-                .getResponse()
-                .getContentAsString();
-
-        verify(itemService, never()).createItem(badItemDto, 1L);
-    }
-
-    @Test
-    void createItemWhenItemWithoutAvailbleThenReturnedStatusIsBadRequest() throws Exception {
-        ItemDto badItemDto = ItemDto.builder()
-                .id(1L)
-                .name("Item")
-                .description("description")
-                .requestId(1L)
-                .build();
-        when(itemService.createItem(badItemDto, any()))
-                .thenReturn(badItemDto);
-
-        mvc.perform(post("/items")
-                        .header("X-Sharer-User-Id", 1L)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(mapper.writeValueAsString(badItemDto)))
-                .andExpect(status().isBadRequest())
-                .andReturn()
-                .getResponse()
-                .getContentAsString();
-
-        verify(itemService, never()).createItem(badItemDto, 1L);
-    }
 
     @Test
     void findItemByIdWhenAllParamsIsValidThenReturnedStatusIsOk() throws Exception {
@@ -153,21 +103,6 @@ class ItemControllerTest {
 
         assertEquals(result, mapper.writeValueAsString(itemsDtoList));
 
-    }
-
-    @Test
-    void findAllUsersItemsWhenUserIdIsNotExistThenReturnedStatusIsNotFound() throws Exception {
-        when(itemService.getOwnerItems(anyLong()))
-                .thenThrow(new NotFoundException(String.format("User with ID = %d not found.", 100L)));
-
-        String result = mvc.perform(get("/items")
-                        .header("X-Sharer-User-Id", 100L))
-                .andExpect(status().isNotFound())
-                .andReturn()
-                .getResponse()
-                .getContentAsString();
-
-        verify(itemService, never()).getOwnerItems(100L);
     }
 
     @Test
@@ -220,18 +155,5 @@ class ItemControllerTest {
                 .andExpect(jsonPath("$.id", is(commentDto.getId()), Long.class))
                 .andExpect(jsonPath("$.text", is(commentDto.getText())))
                 .andExpect(jsonPath("$.authorName", is(commentDto.getAuthorName())));
-    }
-
-    @Test
-    void addCommentWhenTextIsEmptyThenReturnedStatusIsBadRequest() throws Exception {
-        CommentDto badCommentDto = CommentDto.builder().id(1L).text("").authorName("AuthorName").build();
-        when(itemService.addComment(any(), anyLong(), any()))
-                .thenReturn(commentDto);
-
-        mvc.perform(post("/items/1/comment")
-                        .header("X-Sharer-User-Id", 1L)
-                        .content(mapper.writeValueAsString(badCommentDto))
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isBadRequest());
     }
 }

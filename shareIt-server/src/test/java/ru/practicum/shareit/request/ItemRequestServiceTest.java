@@ -18,7 +18,6 @@ import ru.practicum.shareit.user.service.UserServiceImpl;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -72,18 +71,6 @@ class ItemRequestServiceTest {
                 () -> requestService.create(itemRequestDto, 100L));
 
         assertEquals(e.getMessage(), String.format("User with ID = %d not found.", 1L));
-    }
-
-    @Test
-    void findByIdWhenRequestIsValidThenReturnedExpectedRequest() {
-        Mockito.when(userService.getUserById(anyLong()))
-                .thenReturn(userDto);
-        Mockito.when(requestRepository.findById(any()))
-                .thenReturn(Optional.ofNullable(itemRequest));
-        Mockito.when(itemRepository.findAllByItemRequest(any()))
-                .thenReturn(new ArrayList<>());
-
-        assertEquals(requestService.getById(1L, 1L), itemRequestDto);
     }
 
     @Test

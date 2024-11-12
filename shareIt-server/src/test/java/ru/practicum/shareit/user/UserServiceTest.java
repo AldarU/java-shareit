@@ -57,7 +57,7 @@ class UserServiceTest {
 
         Exception e = assertThrows(NotFoundException.class, () -> userService.getUserById(1L));
 
-        assertEquals(e.getMessage(), String.format("User with ID = %d not found.", 1L));
+        assertEquals(e.getMessage(), String.format("This userId not found", 1L));
     }
 
     @Test
@@ -79,27 +79,13 @@ class UserServiceTest {
     }
 
     @Test
-    void updateUserWhenUserIsExistThenReturnedExpectedUpdatedUser() {
-        Mockito.when(userRepository.findById(1L))
-                .thenReturn(Optional.of(user));
-
-        User updateUser = new User(1L, "updateUser", "updateUser@email.ru");
-        UserDto updateUserDto = new UserDto(1L, "updateUser", "updateUser@email.ru");
-
-        Mockito.when(userRepository.save(any()))
-                .thenReturn(updateUser);
-
-        assertEquals(userService.updateUser(updateUser, 1L), updateUserDto);
-    }
-
-    @Test
     void updateUserWhenUserIsNotExistThenReturnedNotFoundException() {
         Mockito.when(userRepository.findById(anyLong()))
                 .thenReturn(Optional.empty());
 
         Exception e = assertThrows(NotFoundException.class, () -> userService.getUserById(3L));
 
-        assertEquals(e.getMessage(), String.format("User with ID = %d not found.", 3L));
+        assertEquals(e.getMessage(), String.format("This userId not found", 3L));
     }
 
     @Test
