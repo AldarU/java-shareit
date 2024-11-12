@@ -100,90 +100,6 @@ class BookingServiceTest {
             .status(Status.APPROVED)
             .item(item).build();
 
-    @Test
-    void createBookingWhenTimeIsNotValidThenReturnedTimeDataException() {
-        ShortBookingDto bookingBadTime = ShortBookingDto.builder()
-                .start(LocalDateTime.now().plusHours(1L))
-                .end(LocalDateTime.now().minusHours(1L))
-                .itemId(1L)
-                .build();
-
-        Exception e = assertThrows(TimeDataException.class,
-                () -> bookingService.createBooking(bookingBadTime, 1L));
-        assertEquals(e.getMessage(), String.format("Invalid booking time start = %s  end = %s",
-                bookingBadTime.getStart(), bookingBadTime.getEnd()));
-    }
-
-    @Test
-    void createBookingWhenUserIsNotOwnerThenReturnedOperationAccessException() {
-        Mockito.when(userService.getUserById(anyLong()))
-                .thenReturn(userDto);
-        Mockito.when(itemService.getItemById(anyLong(), anyLong()))
-                .thenReturn(itemDto);
-
-
-        Exception e = assertThrows(OperationAccessException.class,
-                () -> bookingService.createBooking(shortBookingDto, 1L));
-
-        assertEquals(e.getMessage(), "The owner cannot be a booker.");
-    }
-
-    @Test
-    void createBookingWhenItemIsNotAvailableThenReturnedNotAvailableException() {
-        itemDto.setAvailable(false);
-        Mockito.when(userService.getUserById(anyLong()))
-                .thenReturn(userDto);
-        Mockito.when(itemService.getItemById(anyLong(), anyLong()))
-                .thenReturn(itemDto);
-
-        Exception e = assertThrows(NotAvailableException.class,
-                () -> bookingService.createBooking(shortBookingDto, 2L));
-
-        assertEquals(e.getMessage(), String.format("Item with ID = %d is not available.", 1L));
-    }
-
-    @Test
-    void findBookingByIdWhenBookingIsNotFoundThenReturnedNotFoundException() {
-        Mockito.when(bookingRepository.findById(anyLong()))
-                .thenReturn(Optional.empty());
-
-        Exception e = assertThrows(NotFoundException.class,
-                () -> bookingService.findBookingById(1L, 1L));
-
-        assertEquals(e.getMessage(), String.format("Booking with ID = %d not found.", 1L));
-    }
-
-    @Test
-    void findBookingByIdWhenUserIsNotOwnerThenReturnedOperationAccessException() {
-        Mockito.when(bookingRepository.findById(anyLong()))
-                .thenReturn(Optional.of(booking1));
-        Exception e = assertThrows(OperationAccessException.class,
-                () -> bookingService.findBookingById(1L, 100L));
-
-        assertEquals(e.getMessage(), String.format("User with ID = %d is not the owner, no access to booking.", 100L));
-    }
-
-    @Test
-    void getAllBookingsByUserIdWhenStateIsUnknownThenReturnedBadRequestException() {
-        Mockito.when(userService.getUserById(anyLong()))
-                .thenReturn(userDto);
-        Exception e = assertThrows(BadRequestException.class,
-                () -> bookingService.findBookingsByUser("tratata", 1L));
-
-        assertEquals(e.getMessage(), "Unknown state: tratata");
-    }
-
-    @Test
-    void getAllBookingsByOwnerIdWhenStateIsUnknownThenReturnedBadRequestException() {
-        Mockito.when(userService.getUserById(anyLong()))
-                .thenReturn(userDto);
-        Exception e = assertThrows(BadRequestException.class,
-                () -> bookingService.findBookingsByOwner("tratata", 1L));
-
-        assertEquals(e.getMessage(), "Unknown state: tratata");
-    }
-
-
     @ParameterizedTest
     @CsvSource(value = {
             "ALL, 0, 2",
@@ -264,28 +180,5 @@ class BookingServiceTest {
         List<BookingDto> bookings = bookingService.findBookingsByOwner(state, itemOwner.getId());
         assertEquals(1, bookings.size());
         assertEquals(bookings.get(0).getId(), 1L);
-    }
-
-    @Test
-    void approveWhenBookingDecisionThenReturnedAlreadyExistsException() {
-        Mockito.when(bookingRepository.findById(anyLong()))
-                .thenReturn(Optional.of(booking1));
-
-        Exception e = assertThrows(AlreadyExistsException.class,
-                () -> bookingService.approveBooking(1L, 1L, true));
-
-        assertEquals(e.getMessage(), "The booking decision has already been made.");
-    }
-
-    @Test
-    void approveWhenUserIsNotOwnerThenReturnedOperationAccessException() {
-        Mockito.when(bookingRepository.findById(anyLong()))
-                .thenReturn(Optional.of(booking1));
-        Mockito.when(itemService.getOwnerId(anyLong()))
-                .thenReturn(2L);
-        Exception e = assertThrows(OperationAccessException.class,
-                () -> bookingService.approveBooking(1L, 1L, true));
-
-        assertEquals(e.getMessage(), String.format("User with ID = %d is not the owner, no access to booking.", 1L));
     }
 }

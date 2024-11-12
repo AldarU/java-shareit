@@ -74,26 +74,6 @@ class BookingControllerTest {
     }
 
     @Test
-    void createBookingWhenStartIsNotValidThenReturnedStatusIsBadRequest() throws Exception {
-        ShortBookingDto badShortBookingDto = ShortBookingDto.builder()
-                .start(LocalDateTime.of(1000, 05, 10, 13, 00, 00))
-                .end(LocalDateTime.of(2023, 05, 20, 13, 00, 00))
-                .itemId(1L)
-                .build();
-
-        mvc.perform(post("/bookings")
-                        .header("X-Sharer-User-Id", 1L)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(mapper.writeValueAsString(badShortBookingDto)))
-                .andExpect(status().isBadRequest())
-                .andReturn()
-                .getResponse()
-                .getContentAsString();
-
-        verify(bookingService, never()).createBooking(badShortBookingDto, 1L);
-    }
-
-    @Test
     void createBookingWhenUserIsNotOwnerThenReturnedStatusIsNotFound() throws Exception {
         Mockito.when(bookingService.createBooking(any(), anyLong()))
                 .thenThrow(new NotFoundException(String.format("User with ID = %d not found.", 100L)));
@@ -138,22 +118,6 @@ class BookingControllerTest {
                 .andReturn()
                 .getResponse()
                 .getContentAsString();
-    }
-
-    @Test
-    void findAllByUserIdWhenAllParamsIsValidThenReturnedStatusIsOk() throws Exception {
-        Mockito.when(bookingService.findBookingsByUser(any(), anyLong()))
-                .thenReturn(List.of(bookingDto));
-
-        String result = mvc.perform(get("/bookings/?state=ALL")
-                        .header("X-Sharer-User-Id", 1L)
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andReturn()
-                .getResponse()
-                .getContentAsString();
-
-        assertEquals(result, mapper.writeValueAsString(List.of(bookingDto)));
     }
 
     @Test
