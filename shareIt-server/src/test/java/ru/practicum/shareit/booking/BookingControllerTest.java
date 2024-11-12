@@ -15,18 +15,22 @@ import ru.practicum.shareit.booking.service.BookingService;
 import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.item.dto.ItemDto;
 
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.Collections;
 import java.util.List;
 
+import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(controllers = BookingController.class)
 class BookingControllerTest {
@@ -73,21 +77,39 @@ class BookingControllerTest {
     }
 
     @Test
-    void test() {
-        Mockito.when(bookingService.createBooking(any(), anyLong()))
-                .thenReturn(bookingDto);
+    void addBooking() throws Exception {
+        when(bookingService.createBooking(any(), anyLong())).thenReturn(bookingDto);
+
+        mvc.perform(post("/bookings")
+                        .header("X-Sharer-User-Id", 1L)
+                        .characterEncoding(StandardCharsets.UTF_8)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON)
+                        .content(mapper.writeValueAsString(bookingDto)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id", is(bookingDto.getId()), Long.class))
+                .andExpect(jsonPath("$.start", is(bookingDto.getStart().format(DateTimeFormatter.ISO_DATE_TIME))))
+                .andExpect(jsonPath("$.end", is(bookingDto.getEnd().format(DateTimeFormatter.ISO_DATE_TIME))));
+        verify(bookingService, times(1)).createBooking(any(), anyLong());
     }
 
     @Test
     void testNull() {
-        Mockito.when(bookingService.createBooking(any(), anyLong()))
-                .thenReturn(bookingDto);
+        when(bookingService.findBookingsByOwner(any(), anyLong())).thenReturn(Collections.emptyList());
     }
 
     @Test
-    void testUpdateLaterAldar() {
-        Mockito.when(bookingService.findBookingById(anyLong(), anyLong()))
-                .thenThrow(new NotFoundException(String.format("Booking with ID = %d not found.", 100L)));
+    void testUpdateLaterAldar() throws Exception {
+        when(bookingService.findBookingsByOwner(any(), anyLong())).thenReturn(Collections.emptyList());
+
+        mvc.perform(get("/bookings/owner")
+                        .header("X-Sharer-User-Id", 1L)
+                        .characterEncoding(StandardCharsets.UTF_8)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(content().json("[]"));
+        verify(bookingService, times(1)).findBookingsByOwner(any(), anyLong());
     }
 
     @Test
