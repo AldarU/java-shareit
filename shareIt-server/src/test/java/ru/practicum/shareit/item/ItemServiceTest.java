@@ -24,6 +24,7 @@ import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.service.UserServiceImpl;
 
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -121,6 +122,19 @@ class ItemServiceTest {
                 () -> itemService.createItem(itemDto, 100L));
 
         assertEquals(e.getMessage(), String.format("User with ID = %d not found.", 100L));
+    }
+
+    @Test
+    void test() throws IOException {
+    }
+
+    @Test
+    void testNull() {
+
+    }
+
+    @Test
+    void testUpdateLaterAldar() {
     }
 
     @Test

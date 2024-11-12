@@ -16,6 +16,7 @@ import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.service.UserServiceImpl;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -82,6 +83,19 @@ class ItemRequestServiceTest {
                 () -> requestService.getById(1L, 1L));
 
         assertEquals(e.getMessage(), String.format("Request with ID = %d not found.", 1L));
+    }
+
+    @Test
+    void test() throws IOException {
+    }
+
+    @Test
+    void testNull() {
+
+    }
+
+    @Test
+    void testUpdateLaterAldar() {
     }
 
     @Test

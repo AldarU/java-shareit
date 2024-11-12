@@ -14,6 +14,7 @@ import ru.practicum.shareit.request.dto.RequestDto;
 import ru.practicum.shareit.request.service.RequestServiceImpl;
 import ru.practicum.shareit.user.service.UserService;
 
+import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 
@@ -84,6 +85,19 @@ class ItemRequestControllerTest {
                 .andReturn()
                 .getResponse()
                 .getContentAsString();
+    }
+
+    @Test
+    void test() throws IOException {
+    }
+
+    @Test
+    void testNull() {
+
+    }
+
+    @Test
+    void testUpdateLaterAldar() {
     }
 
     @Test

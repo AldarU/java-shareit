@@ -73,6 +73,24 @@ class BookingControllerTest {
     }
 
     @Test
+    void test() {
+        Mockito.when(bookingService.createBooking(any(), anyLong()))
+                .thenReturn(bookingDto);
+    }
+
+    @Test
+    void testNull() {
+        Mockito.when(bookingService.createBooking(any(), anyLong()))
+                .thenReturn(bookingDto);
+    }
+
+    @Test
+    void testUpdateLaterAldar() {
+        Mockito.when(bookingService.findBookingById(anyLong(), anyLong()))
+                .thenThrow(new NotFoundException(String.format("Booking with ID = %d not found.", 100L)));
+    }
+
+    @Test
     void createBookingWhenUserIsNotOwnerThenReturnedStatusIsNotFound() throws Exception {
         Mockito.when(bookingService.createBooking(any(), anyLong()))
                 .thenThrow(new NotFoundException(String.format("User with ID = %d not found.", 100L)));

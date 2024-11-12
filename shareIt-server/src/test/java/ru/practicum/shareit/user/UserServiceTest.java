@@ -12,6 +12,7 @@ import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.repository.UserRepository;
 import ru.practicum.shareit.user.service.UserServiceImpl;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -86,6 +87,19 @@ class UserServiceTest {
         Exception e = assertThrows(NotFoundException.class, () -> userService.getUserById(3L));
 
         assertEquals(e.getMessage(), String.format("This userId not found", 3L));
+    }
+
+    @Test
+    void test() throws IOException {
+    }
+
+    @Test
+    void testNull() {
+
+    }
+
+    @Test
+    void testUpdateLaterAldar() {
     }
 
     @Test
