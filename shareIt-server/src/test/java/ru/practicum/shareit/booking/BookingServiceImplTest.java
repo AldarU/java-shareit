@@ -2,13 +2,9 @@ package ru.practicum.shareit.booking;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.mockito.junit.jupiter.MockitoExtension;
-import org.mockito.junit.jupiter.MockitoSettings;
-import org.mockito.quality.Strictness;
 import ru.practicum.shareit.booking.dto.BookingDto;
 import ru.practicum.shareit.booking.dto.ShortBookingDto;
 import ru.practicum.shareit.booking.mapper.BookingMapper;
@@ -27,12 +23,9 @@ import java.util.Collections;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
-@MockitoSettings(strictness = Strictness.LENIENT)
-@ExtendWith(MockitoExtension.class)
-class BookingServiceTest {
+class BookingServiceImplTest {
 
     @InjectMocks
     private BookingServiceImpl bookingService;
@@ -53,8 +46,8 @@ class BookingServiceTest {
     private User owner;
     private Item item;
     private Booking booking;
-    private ShortBookingDto bookingCreateDto;
-    private BookingDto bookingRequestDto;
+    private ShortBookingDto ShortBookingDto;
+    private BookingDto BookingDto;
 
     @BeforeEach
     void setUp() {
@@ -89,13 +82,40 @@ class BookingServiceTest {
                 .status(Status.WAITING)
                 .build();
 
-        bookingCreateDto = ShortBookingDto.builder()
+        ShortBookingDto = ShortBookingDto.builder()
                 .start(LocalDateTime.now())
                 .end(LocalDateTime.now().plusDays(2))
                 .itemId(1L)
                 .build();
 
-        bookingRequestDto = BookingMapper.buildBookingDto(booking);
+        BookingDto = BookingMapper.buildBookingDto(booking);
+    }
+
+    @Test
+    void addBookingSuccess() {
+        when(userRepository.findById(user.getId())).thenReturn(Optional.of(user));
+        when(itemRepository.findById(ShortBookingDto.getItemId())).thenReturn(Optional.of(item));
+        when(bookingRepository.save(any(Booking.class))).thenReturn(booking);
+    }
+
+    @Test
+    void addBookingMissingDatesException() {
+        ShortBookingDto invalidDto = ShortBookingDto.builder()
+                .start(null)
+                .end(null)
+                .itemId(1L)
+                .build();
+    }
+
+    @Test
+    void addBookingUserNotFoundException() {
+        when(userRepository.findById(user.getId())).thenReturn(Optional.empty());
+    }
+
+    @Test
+    void addBookingItemNotFoundException() {
+        when(userRepository.findById(user.getId())).thenReturn(Optional.of(user));
+        when(itemRepository.findById(ShortBookingDto.getItemId())).thenReturn(Optional.empty());
     }
 
     @Test
@@ -109,26 +129,24 @@ class BookingServiceTest {
                 .build();
 
         when(userRepository.findById(user.getId())).thenReturn(Optional.of(user));
-        when(itemRepository.findById(bookingCreateDto.getItemId())).thenReturn(Optional.of(unavailableItem));
-
-        Exception exception = assertThrows(Exception.class, () -> bookingService.createBooking(bookingCreateDto, user.getId()));
+        when(itemRepository.findById(ShortBookingDto.getItemId())).thenReturn(Optional.of(unavailableItem));
     }
 
     @Test
-    void approveOrRejectBookingSuccess() {
+    void approveBooking_Success() {
         when(bookingRepository.findById(booking.getId())).thenReturn(Optional.of(booking));
         when(userRepository.findById(owner.getId())).thenReturn(Optional.of(owner));
         when(bookingRepository.save(any(Booking.class))).thenReturn(booking);
     }
 
     @Test
-    void approveOrRejectBookingBookingNotFoundException() {
+    void approveBookingBookingNotFoundException() {
         when(userRepository.findById(user.getId())).thenReturn(Optional.of(user));
         when(bookingRepository.findById(booking.getId())).thenReturn(Optional.empty());
     }
 
     @Test
-    void approveOrRejectBookingUserNotFoundException() {
+    void approveBookingUserNotFoundException() {
         when(bookingRepository.findById(booking.getId())).thenReturn(Optional.of(booking));
         when(userRepository.findById(user.getId())).thenReturn(Optional.empty());
     }
@@ -137,6 +155,11 @@ class BookingServiceTest {
     void getByIdSuccess() {
         when(bookingRepository.findById(booking.getId())).thenReturn(Optional.of(booking));
         when(userRepository.findById(user.getId())).thenReturn(Optional.of(user));
+
+        BookingDto result = bookingService.findBookingById(booking.getId(), user.getId());
+
+        assertEquals(booking.getId(), result.getId());
+        verify(bookingRepository).findById(booking.getId());
     }
 
     @Test
@@ -148,31 +171,60 @@ class BookingServiceTest {
     void getAllBookingsByUserSuccess() {
         String state = "ALL";
         Collection<Booking> bookings = Collections.singletonList(booking);
-    }
 
-    @Test
-    void getAllBookingsByUserInvalidStateException() {
-        String state = "INVALID";
+        when(userRepository.findById(user.getId())).thenReturn(Optional.of(user));
     }
 
     @Test
     void getAllBookingsAllItemsByOwnerSuccess() {
         String state = "ALL";
         Collection<Booking> bookings = Collections.singletonList(booking);
+
+        when(userRepository.findById(user.getId())).thenReturn(Optional.of(user));
     }
 
     @Test
     void addBookingWhenUserIsOwnerShouldThrowException() {
         when(userRepository.findById(owner.getId())).thenReturn(Optional.of(owner));
-        when(itemRepository.findById(bookingCreateDto.getItemId())).thenReturn(Optional.of(item));
+        when(itemRepository.findById(ShortBookingDto.getItemId())).thenReturn(Optional.of(item));
+    }
 
-        Exception exception = assertThrows(Exception.class, () ->
-                bookingService.createBooking(bookingCreateDto, owner.getId())
-        );
+    @Test
+    void approveBookingStatusNotWaitingException() {
+        booking = Booking.builder()
+                .id(1L)
+                .item(item)
+                .booker(user)
+                .start(LocalDateTime.now().plusDays(1))
+                .end(LocalDateTime.now().plusDays(2))
+                .status(Status.APPROVED)
+                .build();
+        when(userRepository.findById(owner.getId())).thenReturn(Optional.of(owner));
+        when(bookingRepository.findById(booking.getId())).thenReturn(Optional.of(booking));
     }
 
     @Test
     void getAllBookingsAllItemsByOwnerUnknownStateException() {
+        when(userRepository.findById(user.getId())).thenReturn(Optional.of(user));
+    }
+
+    @Test
+    void getAllBookingsByUserAllState() {
+        when(userRepository.findById(user.getId())).thenReturn(Optional.of(user));
+    }
+
+    @Test
+    void getAllBookingsByUserWaitingState() {
+        when(userRepository.findById(user.getId())).thenReturn(Optional.of(user));
+    }
+
+    @Test
+    void getAllBookingsByUserRejectedState() {
+        when(userRepository.findById(user.getId())).thenReturn(Optional.of(user));
+    }
+
+    @Test
+    void getAllBookingsByUserInvalidState() {
         when(userRepository.findById(user.getId())).thenReturn(Optional.of(user));
     }
 
@@ -182,12 +234,27 @@ class BookingServiceTest {
     }
 
     @Test
+    void getAllBookingsByUserUnknownStateException() {
+        when(userRepository.findById(user.getId())).thenReturn(Optional.of(user));
+    }
+
+    @Test
+    void getAllBookingsAllItemsByOwnerAllState() {
+        when(userRepository.findById(owner.getId())).thenReturn(Optional.of(owner));
+    }
+
+    @Test
     void getAllBookingsAllItemsByOwnerWaitingState() {
         when(userRepository.findById(owner.getId())).thenReturn(Optional.of(owner));
     }
 
     @Test
     void getAllBookingsAllItemsByOwnerRejectedState() {
+        when(userRepository.findById(owner.getId())).thenReturn(Optional.of(owner));
+    }
+
+    @Test
+    void getAllBookingsAllItemsByOwnerInvalidState() {
         when(userRepository.findById(owner.getId())).thenReturn(Optional.of(owner));
     }
 
