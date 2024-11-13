@@ -26,7 +26,6 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 class BookingServiceImplTest {
-
     @InjectMocks
     private BookingServiceImpl bookingService;
 
@@ -46,8 +45,8 @@ class BookingServiceImplTest {
     private User owner;
     private Item item;
     private Booking booking;
-    private ShortBookingDto ShortBookingDto;
-    private BookingDto BookingDto;
+    private ShortBookingDto shortBookingDto;
+    private BookingDto bookingDto;
 
     @BeforeEach
     void setUp() {
