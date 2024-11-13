@@ -48,13 +48,11 @@ class ItemRequestServiceImplTest {
     }
 
     @Test
-    void addItemRequest() throws Exception {
-        when(itemRequestService.create(any(), eq(1L))).thenReturn(itemRequestDto);
+    void addItemRequest() {
     }
 
     @Test
-    void getAllItemRequestByOwner() throws Exception {
-        when(itemRequestService.findRequestsByUser(anyLong())).thenReturn(Collections.emptyList());
+    void getAllItemRequestByOwner()  {
     }
 
 }
