@@ -3,7 +3,6 @@ package ru.practicum.shareit.request;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -14,11 +13,6 @@ import ru.practicum.shareit.request.dto.RequestDto;
 import ru.practicum.shareit.request.service.RequestServiceImpl;
 
 import java.time.LocalDateTime;
-import java.util.Collections;
-
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.Mockito.*;
 
 @SpringBootTest
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
@@ -46,13 +40,4 @@ class ItemRequestServiceImplTest {
                 .build();
         pageable = PageRequest.of(0, 10, Sort.by("created").descending());
     }
-
-    @Test
-    void addItemRequest() {
-    }
-
-    @Test
-    void getAllItemRequestByOwner()  {
-    }
-
 }
