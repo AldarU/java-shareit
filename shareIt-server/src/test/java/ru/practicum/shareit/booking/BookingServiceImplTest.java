@@ -81,19 +81,19 @@ class BookingServiceImplTest {
                 .status(Status.WAITING)
                 .build();
 
-        ShortBookingDto = ShortBookingDto.builder()
+        shortBookingDto = ShortBookingDto.builder()
                 .start(LocalDateTime.now())
                 .end(LocalDateTime.now().plusDays(2))
                 .itemId(1L)
                 .build();
 
-        BookingDto = BookingMapper.buildBookingDto(booking);
+        bookingDto = BookingMapper.buildBookingDto(booking);
     }
 
     @Test
     void addBookingSuccess() {
         when(userRepository.findById(user.getId())).thenReturn(Optional.of(user));
-        when(itemRepository.findById(ShortBookingDto.getItemId())).thenReturn(Optional.of(item));
+        when(itemRepository.findById(shortBookingDto.getItemId())).thenReturn(Optional.of(item));
         when(bookingRepository.save(any(Booking.class))).thenReturn(booking);
     }
 
@@ -114,7 +114,7 @@ class BookingServiceImplTest {
     @Test
     void addBookingItemNotFoundException() {
         when(userRepository.findById(user.getId())).thenReturn(Optional.of(user));
-        when(itemRepository.findById(ShortBookingDto.getItemId())).thenReturn(Optional.empty());
+        when(itemRepository.findById(shortBookingDto.getItemId())).thenReturn(Optional.empty());
     }
 
     @Test
@@ -128,7 +128,7 @@ class BookingServiceImplTest {
                 .build();
 
         when(userRepository.findById(user.getId())).thenReturn(Optional.of(user));
-        when(itemRepository.findById(ShortBookingDto.getItemId())).thenReturn(Optional.of(unavailableItem));
+        when(itemRepository.findById(shortBookingDto.getItemId())).thenReturn(Optional.of(unavailableItem));
     }
 
     @Test
@@ -185,7 +185,7 @@ class BookingServiceImplTest {
     @Test
     void addBookingWhenUserIsOwnerShouldThrowException() {
         when(userRepository.findById(owner.getId())).thenReturn(Optional.of(owner));
-        when(itemRepository.findById(ShortBookingDto.getItemId())).thenReturn(Optional.of(item));
+        when(itemRepository.findById(shortBookingDto.getItemId())).thenReturn(Optional.of(item));
     }
 
     @Test
