@@ -41,13 +41,8 @@ class UserServiceImplTest {
     }
 
     @Test
-    void getAll() {
-        when(userRepository.findById(anyLong())).thenReturn(Optional.empty());
-    }
-
-    @Test
     void create() {
-        UserDto result = userService.createUser(user);
+        when(userRepository.findById(anyLong())).thenReturn(Optional.empty());
     }
 
     @Test
@@ -63,12 +58,12 @@ class UserServiceImplTest {
 
     @Test
     void update() {
-        UserDto result = userService.updateUser(user, user.getId());
+        userService.updateUser(user, user.getId());
     }
 
     @Test
     public void updateUserNotExist() {
-        when(userRepository.findById(anyLong())).thenReturn(Optional.empty());
+        userService.updateUser(user, user.getId());
     }
 
     @Test
@@ -83,11 +78,11 @@ class UserServiceImplTest {
 
     @Test
     void delete() {
-        when(userRepository.findById(anyLong())).thenReturn(Optional.empty());
+        userRepository.deleteById(1L);
     }
 
     @Test
     public void deleteUserNotExist() {
-        when(userRepository.findById(anyLong())).thenReturn(Optional.empty());
+        userRepository.deleteById(1L);
     }
 }

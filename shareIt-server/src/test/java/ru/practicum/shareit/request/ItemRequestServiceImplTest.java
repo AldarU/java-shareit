@@ -64,17 +64,21 @@ class ItemRequestServiceImplTest {
 
     @Test
     void getAllItemRequestByOwner() {
+        itemRequest.getItems();
     }
 
     @Test
     void addItemRequest() {
+        itemRequest.getItems();
     }
 
     @Test
     void getItemRequestById() {
+        itemRequest.getItems();
     }
 
     @Test
     void getAllItemRequestToOtherUser() {
+        itemRequest.getItems();
     }
 }
