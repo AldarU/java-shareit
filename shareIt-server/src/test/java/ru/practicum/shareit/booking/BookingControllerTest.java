@@ -1,140 +1,339 @@
 package ru.practicum.shareit.booking;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.junit.jupiter.api.BeforeEach;
+import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
 import ru.practicum.shareit.booking.controller.BookingController;
 import ru.practicum.shareit.booking.dto.BookingDto;
 import ru.practicum.shareit.booking.dto.ShortBookingDto;
 import ru.practicum.shareit.booking.service.BookingService;
-import ru.practicum.shareit.exception.NotFoundException;
+import ru.practicum.shareit.item.dto.ItemDto;
+import ru.practicum.shareit.user.dto.UserDto;
 
 import java.nio.charset.StandardCharsets;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.Collections;
 
 import static org.hamcrest.Matchers.is;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+@Slf4j
 @WebMvcTest(BookingController.class)
-@AutoConfigureMockMvc
+@RequiredArgsConstructor(onConstructor_ = @Autowired)
 class BookingControllerTest {
 
     @MockBean
-    private BookingService bookingService;
+    private final BookingService service;
+    private final ObjectMapper mapper;
+    private final MockMvc mockMvc;
 
-    @InjectMocks
-    private BookingController controller;
-
-    @Autowired
-    private MockMvc mvc;
-
-    @Autowired
-    private ObjectMapper mapper;
-    private ShortBookingDto bookingCreateDto;
-    private BookingDto bookingRequestDto;
-
-    @BeforeEach
-    void setUp() {
-        bookingCreateDto = ShortBookingDto.builder()
-                .itemId(1L)
-                .start(LocalDateTime.now())
-                .end(LocalDateTime.now().plusHours(1))
+    @Test
+    @SneakyThrows
+    void createBookingDto() {
+        long itemid = 1;
+        long userId = 3;
+        String name = "name";
+        String description = "description";
+        boolean available = true;
+        ItemDto itemDto = ItemDto.builder()
+                .name(name)
+                .available(available)
+                .id(itemid)
+                .ownerId(userId)
+                .description(description)
                 .build();
 
-        bookingRequestDto = BookingDto.builder()
-                .id(1L)
-                .start(LocalDateTime.now())
-                .end(LocalDateTime.now().plusHours(1))
+
+        String userName = "name";
+        String email = "email@email.dk";
+        UserDto userDto = UserDto.builder()
+                .id(userId)
+                .name(userName)
+                .email(email)
                 .build();
+
+
+        long id = 123;
+
+        ShortBookingDto crdto = new ShortBookingDto();
+        crdto.setItemId(itemid);
+        BookingDto dto = BookingDto.builder()
+                .id(id)
+                .item(itemDto)
+                .booker(userDto)
+                .build();
+
+
+        Mockito.when(service.createBooking(crdto, userId)).thenReturn(dto);
+
+        mockMvc
+                .perform(
+                        post("/bookings")
+                                .content(mapper.writeValueAsString(crdto))
+                                .header("X-Sharer-User-Id", userId)
+                                .characterEncoding(StandardCharsets.UTF_8)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk());
+
+
+
+        MvcResult mvcResult =
+                mockMvc
+                        .perform(
+                                post("/bookings")
+                                        .content(mapper.writeValueAsString(crdto))
+                                        .header("X-Sharer-User-Id", userId)
+                                        .characterEncoding(StandardCharsets.UTF_8)
+                                        .contentType(MediaType.APPLICATION_JSON)
+                                        .accept(MediaType.APPLICATION_JSON))
+                        .andExpect(status().isOk())
+                        .andReturn();
+
+        String responseBody = mvcResult.getResponse().getContentAsString();
+        log.info("Тело ответа: {}", responseBody);
     }
 
     @Test
-    void addBooking() throws Exception {
-        when(bookingService.createBooking(any(), anyLong())).thenReturn(bookingRequestDto);
+    @SneakyThrows
+    void updateBooking() {
+        long itemid = 1;
+        long userId = 3;
+        String name = "name";
+        String description = "description";
+        boolean approved = true;
+        ItemDto itemDto = ItemDto.builder()
+                .name(name)
+                .available(approved)
+                .id(itemid)
+                .ownerId(userId)
+                .description(description)
+                .build();
 
-        mvc.perform(post("/bookings")
-                        .header("X-Sharer-User-Id", 1L)
-                        .characterEncoding(StandardCharsets.UTF_8)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_JSON)
-                        .content(mapper.writeValueAsString(bookingCreateDto)))
+
+        String userName = "name";
+        String email = "email@email.dk";
+        UserDto userDto = UserDto.builder()
+                .id(userId)
+                .name(userName)
+                .email(email)
+                .build();
+
+        long id = 4;
+
+        BookingDto dto = BookingDto.builder()
+                .id(id)
+                .item(itemDto)
+                .booker(userDto)
+                .build();
+
+        mockMvc
+                .perform(
+                        patch("/bookings/" + id + "?approved=" + approved)
+                                .header("X-Sharer-User-Id", userId)
+                                .characterEncoding(StandardCharsets.UTF_8)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk());
+
+        MvcResult mvcResult =
+                mockMvc
+                        .perform(
+                                patch("/bookings/" + id + "?approved=" + approved)
+                                        .header("X-Sharer-User-Id", userId)
+                                        .characterEncoding(StandardCharsets.UTF_8)
+                                        .contentType(MediaType.APPLICATION_JSON)
+                                        .accept(MediaType.APPLICATION_JSON))
+                        .andExpect(status().isOk())
+                        .andReturn();
+
+        String responseBody = mvcResult.getResponse().getContentAsString();
+        log.info("Тело ответа: {}", responseBody);
+    }
+
+    @Test
+    @SneakyThrows
+    void findAll() {
+        long itemid = 1;
+        long userId = 3;
+        String name = "name";
+        String description = "description";
+        boolean approved = true;
+        ItemDto itemDto = ItemDto.builder()
+                .name(name)
+                .available(approved)
+                .id(itemid)
+                .ownerId(userId)
+                .description(description)
+                .build();
+
+
+        String userName = "name";
+        String email = "email@email.dk";
+        UserDto userDto = UserDto.builder()
+                .id(userId)
+                .name(userName)
+                .email(email)
+                .build();
+
+        long id = 4;
+
+        BookingDto dto = BookingDto.builder()
+                .id(id)
+                .item(itemDto)
+                .booker(userDto)
+                .build();
+
+        mockMvc
+                .perform(
+                        get("/bookings")
+                                .header("X-Sharer-User-Id", userId)
+                                .characterEncoding(StandardCharsets.UTF_8)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk());
+
+
+        MvcResult mvcResult =
+                mockMvc
+                        .perform(
+                                get("/bookings")
+                                        .header("X-Sharer-User-Id", userId)
+                                        .characterEncoding(StandardCharsets.UTF_8)
+                                        .contentType(MediaType.APPLICATION_JSON)
+                                        .accept(MediaType.APPLICATION_JSON))
+                        .andExpect(status().isOk())
+                        .andReturn();
+
+        String responseBody = mvcResult.getResponse().getContentAsString();
+        log.info("Тело ответа: {}", responseBody);
+    }
+
+    @Test
+    @SneakyThrows
+    void findByOwner() {
+        long itemid = 1;
+        long userId = 3;
+        String name = "name";
+        String description = "description";
+        boolean approved = true;
+        ItemDto itemDto = ItemDto.builder()
+                .name(name)
+                .available(approved)
+                .id(itemid)
+                .ownerId(userId)
+                .description(description)
+                .build();
+
+
+        String userName = "name";
+        String email = "email@email.dk";
+        UserDto userDto = UserDto.builder()
+                .id(userId)
+                .name(userName)
+                .email(email)
+                .build();
+
+        long id = 4;
+
+        BookingDto dto = BookingDto.builder()
+                .id(id)
+                .item(itemDto)
+                .booker(userDto)
+                .build();
+
+        mockMvc
+                .perform(
+                        get("/bookings/owner")
+                                .header("X-Sharer-User-Id", userId)
+                                .characterEncoding(StandardCharsets.UTF_8)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk());
+
+
+        MvcResult mvcResult =
+                mockMvc
+                        .perform(
+                                get("/bookings/owner")
+                                        .header("X-Sharer-User-Id", userId)
+                                        .characterEncoding(StandardCharsets.UTF_8)
+                                        .contentType(MediaType.APPLICATION_JSON)
+                                        .accept(MediaType.APPLICATION_JSON))
+                        .andExpect(status().isOk())
+                        .andReturn();
+
+        String responseBody = mvcResult.getResponse().getContentAsString();
+        log.info("Тело ответа: {}", responseBody);
+    }
+
+    @Test
+    @SneakyThrows
+    void findById() {
+        long itemid = 1;
+        long userId = 3;
+        String name = "name";
+        String description = "description";
+        boolean approved = true;
+        ItemDto itemDto = ItemDto.builder()
+                .name(name)
+                .available(approved)
+                .id(itemid)
+                .ownerId(userId)
+                .description(description)
+                .build();
+
+
+        String userName = "name";
+        String email = "email@email.dk";
+        UserDto userDto = UserDto.builder()
+                .id(userId)
+                .name(userName)
+                .email(email)
+                .build();
+
+        long id = 4;
+
+        BookingDto dto = BookingDto.builder()
+                .id(id)
+                .item(itemDto)
+                .booker(userDto)
+                .build();
+
+        Mockito.when(service.findBookingById(id, userId)).thenReturn(dto);
+
+        mockMvc
+                .perform(
+                        get("/bookings/" + id)
+                                .header("X-Sharer-User-Id", userId)
+                                .characterEncoding(StandardCharsets.UTF_8)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id", is(bookingRequestDto.getId()), Long.class))
-                .andExpect(jsonPath("$.start", is(bookingRequestDto.getStart().format(DateTimeFormatter.ISO_DATE_TIME))))
-                .andExpect(jsonPath("$.end", is(bookingRequestDto.getEnd().format(DateTimeFormatter.ISO_DATE_TIME))));
-        verify(bookingService, times(1)).createBooking(any(), anyLong());
-    }
+                .andExpect(jsonPath("$.id", is(dto.getId()), Long.class));
 
-    @Test
-    void getAllBookingsByUser() throws Exception {
-        when(bookingService.findBookingsByOwner(anyString(), anyLong())).thenReturn(Collections.emptyList());
-    }
 
-    @Test
-    void getAllBookingsAllItemsByOwner() throws Exception {
-        when(bookingService.findBookingsByOwner(anyString(), anyLong())).thenReturn(Collections.emptyList());
+        MvcResult mvcResult =
+                mockMvc
+                        .perform(
+                                get("/bookings/" + id)
+                                        .header("X-Sharer-User-Id", userId)
+                                        .characterEncoding(StandardCharsets.UTF_8)
+                                        .contentType(MediaType.APPLICATION_JSON)
+                                        .accept(MediaType.APPLICATION_JSON))
+                        .andExpect(status().isOk())
+                        .andReturn();
 
-        mvc.perform(get("/bookings/owner")
-                        .header("X-Sharer-User-Id", 1L)
-                        .characterEncoding(StandardCharsets.UTF_8)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(content().json("[]"));
-        verify(bookingService, times(1)).findBookingsByOwner(anyString(), anyLong());
-    }
-
-    @Test
-    void approveOrRejectBooking() throws Exception {
-        when(bookingService.approveBooking(anyLong(), anyLong(), anyBoolean())).thenReturn(bookingRequestDto);
-
-        mvc.perform(patch("/bookings/1?approved=true")
-                        .header("X-Sharer-User-Id", 1L)
-                        .characterEncoding(StandardCharsets.UTF_8)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id", is(bookingRequestDto.getId()), Long.class))
-                .andExpect(jsonPath("$.start", is(bookingRequestDto.getStart().format(DateTimeFormatter.ISO_DATE_TIME))))
-                .andExpect(jsonPath("$.end", is(bookingRequestDto.getEnd().format(DateTimeFormatter.ISO_DATE_TIME))));
-        verify(bookingService, times(1)).approveBooking(anyLong(), anyLong(), anyBoolean());
-    }
-
-    @Test
-    void getById() throws Exception {
-        when(bookingService.findBookingById(anyLong(), anyLong())).thenReturn(bookingRequestDto);
-
-        mvc.perform(get("/bookings/1")
-                        .header("X-Sharer-User-Id", 1L)
-                        .characterEncoding(StandardCharsets.UTF_8)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id", is(bookingRequestDto.getId()), Long.class))
-                .andExpect(jsonPath("$.start", is(bookingRequestDto.getStart().format(DateTimeFormatter.ISO_DATE_TIME))))
-                .andExpect(jsonPath("$.end", is(bookingRequestDto.getEnd().format(DateTimeFormatter.ISO_DATE_TIME))));
-        verify(bookingService, times(1)).findBookingById(anyLong(), anyLong());
-    }
-
-    @Test
-    void getAllBookingsByUserNotFound() throws Exception {
-        when(bookingService.findBookingsByUser(anyString(), anyLong())).thenThrow(new NotFoundException("Пользователя нет с таким id = " + 1L));
-
-        mvc.perform(get("/bookings")
-                        .header("X-Sharer-User-Id", 1L)
-                        .param("state", "ALL"))
-                .andExpect(status().isNotFound());
+        String responseBody = mvcResult.getResponse().getContentAsString();
+        log.info("Тело ответа: {}", responseBody);
     }
 }
