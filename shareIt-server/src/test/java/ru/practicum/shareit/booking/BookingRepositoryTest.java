@@ -17,12 +17,6 @@ import java.time.LocalDateTime;
 @DataJpaTest
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
 class BookingRepositoryTest {
-
-    private final BookingRepository repository;
-    private final ItemRepository itemRepository;
-    private final UserRepository userRepositroy;
-
-
     @Test
     void createBooking() {
         Booking booking = Booking.builder()

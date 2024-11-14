@@ -17,12 +17,6 @@ import ru.practicum.shareit.request.service.RequestServiceImpl;
 @WebMvcTest(ItemRequestController.class)
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
 class ItemRequestControllerTest {
-
-    @MockBean
-    private final RequestServiceImpl service;
-    private final ObjectMapper mapper;
-    private final MockMvc mockMvc;
-
     @Test
     @SneakyThrows
     void createItemRequest() {
