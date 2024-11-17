@@ -46,6 +46,7 @@ class UserRepositoryTest {
         User user = new User();
         user.setName("name");
         user.setEmail("email");
+
     }
 
     @Test

@@ -12,8 +12,7 @@ import java.time.LocalDateTime;
 
 @DataJpaTest
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
-class ItemRequestRepositoryTest {
-
+public class RequestRepositoryTest {
     private final RequestRepository repository;
 
     @Test
