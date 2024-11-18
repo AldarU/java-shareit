@@ -2,47 +2,48 @@ package ru.practicum.shareit.user;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PatchMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-import ru.practicum.shareit.user.dto.UserDto;
+import org.springframework.stereotype.Controller;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.*;
+import ru.practicum.shareit.user.dto.UserDtoCreate;
+import ru.practicum.shareit.user.dto.UserDtoUpdate;
 
-@RestController
+@Controller
+@RequestMapping(path = "/users")
 @RequiredArgsConstructor
-@RequestMapping("/users")
+@Slf4j
+@Validated
 public class UserController {
-
-    private final UserClient client;
+    private final UserClient userClient;
 
     @PostMapping
-    public ResponseEntity<Object> add(@Valid @RequestBody UserDto user) {
-        return client.addUser(user);
-    }
-
-    @PatchMapping("/{userId}")
-    public ResponseEntity<Object> update(@PathVariable Long userId,
-                                    @RequestBody UserDto user) {
-        return client.updateUser(userId, user);
-    }
-
-    @DeleteMapping("/{userId}")
-    public void delete(@PathVariable Long userId) {
-        client.deleteUser(userId);
-    }
-
-    @GetMapping("/{userId}")
-    public ResponseEntity<Object> getById(@PathVariable Long userId) {
-        return client.getUserById(userId);
+    public ResponseEntity<Object> createUser(@Valid @RequestBody UserDtoCreate userDtoCreate) {
+        log.info("Creating user {}", userDtoCreate);
+        return userClient.createUser(userDtoCreate);
     }
 
     @GetMapping
-    public ResponseEntity<Object> getAll() {
-        return client.getAllUsers();
+    public ResponseEntity<Object> getUsers() {
+        log.info("Get users");
+        return userClient.getUsers();
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<Object> getUserById(@PathVariable long id) {
+        log.info("Get user by id {}", id);
+        return userClient.getUserById(id);
+    }
+
+    @PatchMapping("/{id}")
+    public ResponseEntity<Object> updateUser(@PathVariable long id, @Valid @RequestBody UserDtoUpdate userDtoUpdate) {
+        log.info("Update user {}", userDtoUpdate.getName());
+        return userClient.updateUser(id, userDtoUpdate);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Object> deleteUser(@PathVariable long id) {
+        return userClient.deleteUser(id);
     }
 }

@@ -1,50 +1,36 @@
 package ru.practicum.shareit.item.model;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import ru.practicum.shareit.booking.model.Booking;
-import ru.practicum.shareit.comments.dto.CommentDto;
-import ru.practicum.shareit.request.model.ItemRequest;
+import lombok.*;
 
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
-@Data
-@Entity
-@Builder(toBuilder = true)
+/**
+ * TODO Sprint add-controllers.
+ */
 @Table(name = "items")
-@NoArgsConstructor
+@Entity
+@Getter
+@Setter
+@ToString
 @AllArgsConstructor
+@NoArgsConstructor
 public class Item {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
-    @Column(name = "name")
     private String name;
-
-    @Column(name = "description")
     private String description;
-
-    @Column(name = "is_available")
     private Boolean available;
+    @Column(name = "user_id")
+    private Long userId;
+    @Column(name = "request_id")
+    private Long requestId;
 
-    @Column(name = "owner_id")
-    private Long ownerId;
+    @ElementCollection
+    @CollectionTable(name = "comments", joinColumns = @JoinColumn(name = "item_id"))
+    @Column(name = "id")
+    private Set<Long> comments = new HashSet<>();
 
-    @Transient
-    private Booking lastBooking;
-
-    @Transient
-    private Booking nextBooking;
-
-    @Transient
-    private List<CommentDto> comments;
-
-    @ManyToOne
-    @JoinColumn(name = "request_id")
-    private ItemRequest itemRequest;
 }

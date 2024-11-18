@@ -1,61 +1,62 @@
 package ru.practicum.shareit.item;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PatchMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
-import ru.practicum.shareit.item.dto.CommentRequestDto;
-import ru.practicum.shareit.item.dto.ItemRequestDto;
+import org.springframework.stereotype.Controller;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.*;
+import ru.practicum.shareit.item.dto.CommentCreateDto;
+import ru.practicum.shareit.item.dto.ItemDtoCreate;
+import ru.practicum.shareit.item.dto.ItemDtoUpdate;
 
-@RestController
+@Controller
+@RequestMapping(path = "/items")
 @RequiredArgsConstructor
-@RequestMapping("/items")
+@Slf4j
+@Validated
 public class ItemController {
-
-    private final ItemClient client;
+    private final ItemClient itemClient;
 
     @PostMapping
-    public ResponseEntity<Object> add(@RequestHeader("X-Sharer-User-Id") Long ownerId,
-                                      @Valid @RequestBody ItemRequestDto itemRequestDto) {
-
-        return client.addItem(ownerId, itemRequestDto);
+    public ResponseEntity<Object> createItem(@Valid @RequestBody ItemDtoCreate itemDto,
+                                             @Valid @NotNull @RequestHeader(name = "X-Sharer-User-Id") Long userId) {
+        return itemClient.createItem(itemDto, userId);
     }
 
-    @PatchMapping("/{itemId}")
-    public ResponseEntity<Object> update(@RequestHeader("X-Sharer-User-Id") Long userId,
-                                         @PathVariable Long itemId,
-                                         @RequestBody ItemRequestDto itemRequestDto) {
-        return client.updateItem(userId, itemId, itemRequestDto);
-    }
-
-    @GetMapping("/{itemId}")
-    public ResponseEntity<Object> getById(@PathVariable Long itemId,
-                                          @RequestHeader("X-Sharer-User-Id") Long userId) {
-        return client.getItemById(itemId, userId);
+    @PatchMapping("/{id}")
+    public ResponseEntity<Object> updateItem(@PathVariable long id, @RequestBody ItemDtoUpdate itemDto,
+                                             @RequestHeader(name = "X-Sharer-User-Id") Long userId) {
+        return itemClient.updateItem(id, itemDto, userId);
     }
 
     @GetMapping
-    public ResponseEntity<Object> getAllById(@RequestHeader("X-Sharer-User-Id") Long userId) {
-        return client.getAllItemByUserId(userId);
+    public ResponseEntity<Object> getItems(@RequestHeader(name = "X-Sharer-User-Id") Long userId) {
+        return itemClient.getItems(userId);
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<Object> getItemById(@PathVariable long id) {
+        return itemClient.getItemById(id);
     }
 
     @GetMapping("/search")
-    public ResponseEntity<Object> searchItems(@RequestParam String text) {
-        return client.searchItems(text);
+    public ResponseEntity<Object> searchItem(@RequestParam("text") String text,
+                                             @RequestHeader(name = "X-Sharer-User-Id") Long userId) {
+
+        return itemClient.searchItem(text, userId);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Object> deleteItem(long id) {
+        return itemClient.deleteItem(id);
     }
 
     @PostMapping("/{itemId}/comment")
-    public ResponseEntity<Object> addComment(@RequestBody CommentRequestDto comment,
-                                             @RequestHeader("X-Sharer-User-Id") Long userId,
-                                             @PathVariable Long itemId) {
-        return client.addComment(comment, userId, itemId);
+    public ResponseEntity<Object> createComment(@RequestHeader(name = "X-Sharer-User-Id") Long userId,
+                                                @PathVariable Long itemId, @RequestBody CommentCreateDto commentText) {
+        return itemClient.createComment(userId, itemId, commentText);
     }
 }

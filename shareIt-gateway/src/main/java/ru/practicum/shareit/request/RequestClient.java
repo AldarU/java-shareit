@@ -6,9 +6,10 @@ import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.util.DefaultUriBuilderFactory;
 import ru.practicum.shareit.client.BaseClient;
-import ru.practicum.shareit.request.dto.ReqItemDto;
+import ru.practicum.shareit.request.dto.ItemRequestCreateDto;
 
 @Service
 public class RequestClient extends BaseClient {
@@ -24,20 +25,17 @@ public class RequestClient extends BaseClient {
         );
     }
 
-    public ResponseEntity<Object> createRequest(Long authorId, ReqItemDto createDto) {
-        System.out.println(createDto);
-        return post("", authorId, createDto);
+    public ResponseEntity<Object> createItemRequest(ItemRequestCreateDto itemRequestCreateDto, Long userId) {
+        return post("", userId, itemRequestCreateDto);
     }
 
-    public ResponseEntity<Object> getRequestsByAuthorId(Long authorId) {
-        return get("", authorId);
+    @GetMapping
+    public ResponseEntity<Object> getItemRequests(Long userId) {
+        return get("", userId);
     }
 
-    public ResponseEntity<Object> getRequestsOtherUsers(Long userId) {
-        return get("/all", userId);
-    }
-
-    public ResponseEntity<Object> getRequestById(Long requestId, Long userId) {
-        return get("/" + requestId, userId);
+    public ResponseEntity<Object> getItemRequestById(long id,
+                                                     Long userId) {
+        return get("/" + id, userId);
     }
 }

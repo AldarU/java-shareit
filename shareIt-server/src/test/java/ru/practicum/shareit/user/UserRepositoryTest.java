@@ -1,23 +1,29 @@
 package ru.practicum.shareit.user;
 
 import lombok.RequiredArgsConstructor;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import ru.practicum.shareit.user.model.User;
-import ru.practicum.shareit.user.repository.UserRepository;
+
+import java.util.List;
+import java.util.Optional;
 
 @DataJpaTest
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
 class UserRepositoryTest {
 
-    private final UserRepository repository;
+    private final UserJpaRepository repository;
 
     @Test
     void createUser() {
         User user = new User();
         user.setName("name");
         user.setEmail("email");
+
+        User savedUser = repository.save(user);
+        Assertions.assertNotNull(user.getId());
     }
 
     @Test
@@ -25,6 +31,14 @@ class UserRepositoryTest {
         User user = new User();
         user.setName("name");
         user.setEmail("email");
+        repository.save(user);
+        User user1 = new User();
+        user.setName("name1");
+        user.setEmail("email1");
+        repository.save(user1);
+
+        List<User> result = repository.findAll();
+        Assertions.assertEquals(2, result.size());
     }
 
     @Test
@@ -32,6 +46,16 @@ class UserRepositoryTest {
         User user = new User();
         user.setName("name");
         user.setEmail("email");
+        repository.save(user);
+        User user1 = new User();
+        user.setName("name1");
+        user.setEmail("email1");
+        user1 = repository.save(user1);
+
+        Optional<User> result = repository.findById(user1.getId());
+
+        Assertions.assertTrue(result.isPresent());
+        Assertions.assertEquals(user1.getId(), result.get().getId());
     }
 
     @Test
@@ -39,6 +63,11 @@ class UserRepositoryTest {
         User user = new User();
         user.setName("name");
         user.setEmail("email");
+        repository.save(user);
+
+        List<User> result = repository.findByEmailContainingIgnoreCase("email");
+
+        Assertions.assertEquals(1, result.size());
     }
 
     @Test
@@ -46,6 +75,12 @@ class UserRepositoryTest {
         User user = new User();
         user.setName("name");
         user.setEmail("email");
+        User sv = repository.save(user);
+
+        sv.setName("newName");
+        User upd = repository.save(sv);
+
+        Assertions.assertEquals("newName", upd.getName());
 
     }
 
@@ -54,5 +89,12 @@ class UserRepositoryTest {
         User user = new User();
         user.setName("name");
         user.setEmail("email");
+        User sv = repository.save(user);
+
+        repository.deleteById(sv.getId());
+
+        Optional<User> result = repository.findById(sv.getId());
+
+        Assertions.assertTrue(result.isEmpty());
     }
 }

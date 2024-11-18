@@ -1,7 +1,5 @@
 package ru.practicum.shareit.booking;
 
-import java.util.Map;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.client.RestTemplateBuilder;
@@ -9,10 +7,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.web.util.DefaultUriBuilderFactory;
-
 import ru.practicum.shareit.booking.dto.BookItemRequestDto;
 import ru.practicum.shareit.booking.dto.BookingState;
 import ru.practicum.shareit.client.BaseClient;
+
+import java.util.Map;
 
 @Service
 public class BookingClient extends BaseClient {
@@ -42,15 +41,23 @@ public class BookingClient extends BaseClient {
         return post("", userId, requestDto);
     }
 
-    public ResponseEntity<Object> getBooking(long userId, long bookingId) {
+    public ResponseEntity<Object> getBooking(long userId, Long bookingId) {
         return get("/" + bookingId, userId);
     }
 
-    public ResponseEntity<Object> getAllBookingsAllItemsByOwner(long userId, BookingState state) {
-        return get("/owner?state=" + state.name(), userId);
+    public ResponseEntity<Object> updateBooking(Long userId,
+                                                long id,
+                                                Boolean approved) {
+        Map<String, Object> parameters = Map.of(
+                "id", id,
+                "approved", approved
+
+        );
+        String path = String.format("/%d?approved=%s", id, approved.toString());
+        return patch(path, userId, id);
     }
 
-    public ResponseEntity<Object> approveOrRejectBooking(long userId, long bookingId, Boolean approved) {
-        return patch("/" + bookingId + "?approved=" + approved, userId);
+    public ResponseEntity<Object> findByOwner(Long userId) {
+        return get("/owner", userId);
     }
 }

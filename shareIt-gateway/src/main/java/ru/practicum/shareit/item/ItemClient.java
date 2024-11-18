@@ -3,18 +3,14 @@ package ru.practicum.shareit.item;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.client.RestTemplateBuilder;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
 import org.springframework.web.util.DefaultUriBuilderFactory;
 import ru.practicum.shareit.client.BaseClient;
-import ru.practicum.shareit.item.dto.CommentRequestDto;
-import ru.practicum.shareit.item.dto.ItemRequestDto;
-
-import java.util.Collections;
-import java.util.Map;
+import ru.practicum.shareit.item.dto.CommentCreateDto;
+import ru.practicum.shareit.item.dto.ItemDtoCreate;
+import ru.practicum.shareit.item.dto.ItemDtoUpdate;
 
 @Service
 public class ItemClient extends BaseClient {
@@ -30,38 +26,35 @@ public class ItemClient extends BaseClient {
         );
     }
 
-    public ResponseEntity<Object> addItem(Long ownerId, ItemRequestDto requestDto) {
-        System.out.println(requestDto);
-        return post("", ownerId, requestDto);
+    public ResponseEntity<Object> createItem(ItemDtoCreate itemDto,
+                                             Long userId) {
+        return post("", userId, itemDto);
     }
 
-    public ResponseEntity<Object> updateItem(Long userId, Long itemId, ItemRequestDto requestDto) {
-        return patch("/" + itemId, userId, requestDto);
+    public ResponseEntity<Object> updateItem(long id, ItemDtoUpdate itemDto,
+                                             Long userId) {
+        return patch("/" + id, userId, itemDto);
     }
 
-    public ResponseEntity<Object> getItemById(Long itemId, Long userId) {
-        return get("/" + itemId, userId);
-    }
-
-    public ResponseEntity<Object> getAllItemByUserId(Long userId) {
-
+    public ResponseEntity<Object> getItems(Long userId) {
         return get("", userId);
     }
 
-    public ResponseEntity<Object> searchItems(String text) {
-        if (!StringUtils.hasText(text)) {
-            return ResponseEntity.status(HttpStatus.OK).body(Collections.emptyList());
-        } else {
-            Map<String, Object> parameters = Map.of(
-                    "text", text.toLowerCase()
-            );
-            return get(
-                    "/search?text=" + text,
-                    parameters.size());
-        }
+    public ResponseEntity<Object> getItemById(long id) {
+        return get("/" + id);
     }
 
-    public ResponseEntity<Object> addComment(CommentRequestDto createDto, Long userId, Long itemId) {
-        return post("/" + itemId + "/comment", userId, createDto);
+    public ResponseEntity<Object> searchItem(String text,
+                                             Long userId) {
+        return get("/search?text=" + text, userId);
+    }
+
+    public ResponseEntity<Object> deleteItem(long id) {
+        return delete("/" + id);
+    }
+
+    public ResponseEntity<Object> createComment(Long userId,
+                                                Long itemId, CommentCreateDto commentText) {
+        return post("/" + itemId + "/comment", userId, commentText);
     }
 }

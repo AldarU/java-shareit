@@ -1,40 +1,39 @@
 package ru.practicum.shareit.booking.mapper;
 
-import org.springframework.stereotype.Component;
+import ru.practicum.shareit.booking.Booking;
+import ru.practicum.shareit.booking.dto.BookingCreateDto;
 import ru.practicum.shareit.booking.dto.BookingDto;
-import ru.practicum.shareit.booking.dto.ItemBookingDto;
-import ru.practicum.shareit.booking.model.Booking;
-import ru.practicum.shareit.item.mapper.ItemMapper;
-import ru.practicum.shareit.user.mapper.UserMapper;
+import ru.practicum.shareit.item.dto.ItemDto;
+import ru.practicum.shareit.user.dto.UserDto;
 
-import java.util.List;
-import java.util.stream.Collectors;
+import java.time.LocalDateTime;
 
-@Component
 public class BookingMapper {
-    public static BookingDto buildBookingDto(Booking booking) {
+    public static Booking mapBookingCreateDtoToBooking(BookingCreateDto bookingCreateDto) {
+
+        Booking booking = new Booking();
+        booking.setStartDate(LocalDateTime.parse(bookingCreateDto.getStart()));
+        booking.setEndDate(LocalDateTime.parse(bookingCreateDto.getEnd()));
+        booking.setStatus(bookingCreateDto.getStatus());
+        return booking;
+    }
+
+    public static BookingDto mapBookingToBoodingDto(Booking booking) {
+        UserDto userDto = UserDto.builder()
+                .id(booking.getUser().getId())
+                .name(booking.getUser().getName())
+                .build();
         return BookingDto.builder()
+                .booker(userDto)
                 .id(booking.getId())
-                .start(booking.getStart())
-                .end(booking.getEnd())
-                .booker(UserMapper.buildUserDto(booking.getBooker()))
-                .item(ItemMapper.buildItemDto(booking.getItem()))
-                .status(booking.getStatus())
+                .item(ItemDto.builder()
+                        .id(booking.getItem().getId())
+                        .name(booking.getItem().getName())
+                        .build())
+                .end(booking.getEndDate())
+                .start(booking.getStartDate())
+                .status(booking.getStatus().name())
                 .build();
     }
 
-    public static List<BookingDto> buildBookingDto(List<Booking> list) {
-        return list.stream()
-                .map(BookingMapper::buildBookingDto)
-                .collect(Collectors.toList());
-    }
-
-    public static ItemBookingDto buildItemBookingDto(Booking booking) {
-        return ItemBookingDto.builder()
-                .id(booking.getId())
-                .bookerId(booking.getBooker().getId())
-                .start(booking.getStart())
-                .end(booking.getEnd())
-                .build();
-    }
 }
