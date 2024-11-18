@@ -2,7 +2,6 @@ package ru.practicum.shareit.item;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -23,7 +22,7 @@ public class ItemController {
 
     @PostMapping
     public ResponseEntity<ItemDto> createItem(@RequestBody ItemDtoCreate itemDto,
-                                              @NotNull @RequestHeader(name = "X-Sharer-User-Id") Long userId) {
+                                              @RequestHeader(name = "X-Sharer-User-Id") Long userId) {
         userService.getUserById(userId);
         HttpHeaders responseHeaders = new HttpHeaders();
         responseHeaders.set("X-Sharer-User-Id", userId.toString());

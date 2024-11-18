@@ -1,6 +1,5 @@
 package ru.practicum.shareit.user;
 
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
@@ -20,7 +19,7 @@ public class UserController {
     private final UserService userService;
 
     @PostMapping
-    public UserDto createUser(@Valid @RequestBody UserDtoCreate userDtoCreate) {
+    public UserDto createUser(@RequestBody UserDtoCreate userDtoCreate) {
         if (userService.isEmailExists(userDtoCreate.getEmail())) {
             String errorMessage = "Пользователь с таким email уже существует";
             log.error(errorMessage);
@@ -40,7 +39,7 @@ public class UserController {
     }
 
     @PatchMapping("/{id}")
-    public UserDto updateUser(@PathVariable long id, @Valid @RequestBody UserDtoUpdate userDtoUpdate) {
+    public UserDto updateUser(@PathVariable long id, @RequestBody UserDtoUpdate userDtoUpdate) {
         if (userDtoUpdate.getEmail() != null && userService.isEmailExists(userDtoUpdate.getEmail())) {
             String errorMessage = "Пользователь с таким email уже существует";
             log.error(errorMessage);
