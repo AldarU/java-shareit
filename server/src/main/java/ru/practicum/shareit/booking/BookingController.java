@@ -1,0 +1,49 @@
+package ru.practicum.shareit.booking;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.web.bind.annotation.*;
+import ru.practicum.shareit.booking.dto.BookingCreateDto;
+import ru.practicum.shareit.booking.dto.BookingDto;
+
+import java.util.List;
+
+@RestController
+@RequestMapping(path = "/bookings")
+@RequiredArgsConstructor
+@Slf4j
+public class BookingController {
+
+    private final BookingService bookingService;
+
+    @PostMapping
+    public BookingDto createBookingDto(@RequestBody BookingCreateDto bookingDto,
+                                        @RequestHeader(name = "X-Sharer-User-Id") Long userId) {
+        return bookingService.createBooking(bookingDto, userId);
+
+    }
+
+    @PatchMapping("/{id}")
+    public BookingDto updateBooking(@RequestHeader(name = "X-Sharer-User-Id") Long userId,
+                                     @PathVariable long id,
+                                     @RequestParam("approved") Boolean approved) {
+        return bookingService.updateBooking(id, userId, approved);
+    }
+
+    @GetMapping
+    public List<BookingDto> findAll() {
+        return bookingService.findAll().reversed();
+    }
+
+    @GetMapping("/owner")
+    public List<BookingDto> findByOwner(@RequestHeader(name = "X-Sharer-User-Id") Long userId) {
+        return bookingService.findByOwner(userId);
+    }
+
+    @GetMapping("/{id}")
+    public BookingDto findById(@RequestHeader(name = "X-Sharer-User-Id") Long userId,
+                                @PathVariable long id) {
+        return bookingService.findById(id, userId);
+    }
+
+}
