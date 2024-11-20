@@ -57,7 +57,9 @@ public class ItemService {
     }
 
     public List<ItemDto> getItems(Long userId) {
-
+        if (itemRepostory.findByUserId(userId).isEmpty()) {
+            throw new UserNotFoundException("User не найден.");
+        }
         return itemRepostory.findByUserId(userId).stream()
                 .map(ItemMapper::mapItemToItemDto)
                 .toList();
@@ -91,6 +93,9 @@ public class ItemService {
         if (text == null || text.isBlank()) {
             return List.of();
         }
+        if (itemRepostory.searchItem(text).isEmpty()) {
+            throw new ItemNotFoundException("Предмет не найден.");
+        }
         return itemRepostory.searchItem(text).stream()
                 .map(ItemMapper::mapItemToItemDto)
                 .toList();
@@ -106,10 +111,8 @@ public class ItemService {
         Optional<Booking> booking = bookingList.stream()
                 .filter(x -> x.getItem().getId().equals(itemId))
                 .findAny();
-        if (booking.isEmpty()) {
-            throw new AccessException("У пользователя нет прав писать отзыв об этой вещи");
-        }
-        if (booking.get().getStartDate().isAfter(LocalDateTime.now())) {
+
+        if (booking.get().getStartDate().isAfter(LocalDateTime.now()) || booking.isEmpty()) {
             throw new AccessException("У пользователя нет прав писать отзыв об этой вещи");
         }
         Optional<Item> item = itemRepostory.findById(itemId);
@@ -124,6 +127,5 @@ public class ItemService {
         comment.setAuthor(user.get());
 
         return CommentMapper.mapCommentToCommentDto(commentRepository.save(comment));
-
     }
 }

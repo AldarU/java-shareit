@@ -11,10 +11,8 @@ import ru.practicum.shareit.booking.mapper.BookingMapper;
 import ru.practicum.shareit.exception.AccessException;
 import ru.practicum.shareit.item.ItemJpaRepository;
 import ru.practicum.shareit.item.exception.ItemNotAvailableException;
-import ru.practicum.shareit.item.exception.ItemNotFoundException;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.user.UserJpaRepository;
-import ru.practicum.shareit.user.exception.UserNotFoundException;
 import ru.practicum.shareit.user.model.User;
 
 import java.util.Comparator;
@@ -30,13 +28,12 @@ public class BookingService {
 
     public BookingDto createBooking(BookingCreateDto bookingDto, Long userId) {
         Optional<User> user = userRepository.findById(userId);
-        if (user.isEmpty()) {
-            throw new UserNotFoundException("Пользователь не найден");
-        }
         Optional<Item> item = itemRepository.findById(bookingDto.getItemId());
-        if (item.isEmpty()) {
-            throw new ItemNotFoundException("Вещь не существует");
+
+        if (validateCreate(user, item)) {
+            throw new BookingNotFoundException("Ошибка при создании бронирования");
         }
+
         if (!item.get().getAvailable()) {
             throw new ItemNotAvailableException("Вещь недоступна для аренды");
         }
@@ -91,5 +88,9 @@ public class BookingService {
             throw new AccessException("Доступ запрещён");
         }
         return BookingMapper.mapBookingToBoodingDto(booking.get());
+    }
+
+    private boolean validateCreate(Optional<User> user, Optional<Item> item) {
+        return user.isEmpty() || item.isEmpty();
     }
 }
