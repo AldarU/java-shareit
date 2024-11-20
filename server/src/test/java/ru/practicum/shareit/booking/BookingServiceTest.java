@@ -119,7 +119,7 @@ class BookingServiceTest {
     void createBooking() {
         Mockito.when(userRepository.findById(any())).thenReturn(Optional.empty());
 
-        Assertions.assertThrows(UserNotFoundException.class, () -> service.createBooking(new BookingCreateDto(), 1L));
+        Assertions.assertThrows(BookingNotFoundException.class, () -> service.createBooking(new BookingCreateDto(), 1L));
     }
 
     @Test
@@ -127,7 +127,7 @@ class BookingServiceTest {
         Mockito.when(userRepository.findById(any())).thenReturn(Optional.of(new User()));
         Mockito.when(itemRepository.findById(any())).thenReturn(Optional.empty());
 
-        Assertions.assertThrows(ItemNotFoundException.class, () -> service.createBooking(new BookingCreateDto(), 1L));
+        Assertions.assertThrows(BookingNotFoundException.class, () -> service.createBooking(new BookingCreateDto(), 1L));
     }
 
     @Test

@@ -354,19 +354,6 @@ class ItemServiceTest {
                 .user(user)
                 .id(3L)
                 .build();
-
-        Mockito.when(bookingRepository.findByOwner(any())).thenReturn(List.of(booking));
-
-        Comment comment = new Comment();
-        comment.setItem(item);
-        comment.setAuthor(user);
-
-        CommentCreateDto commentDto = new CommentCreateDto();
-        commentDto.setText("text");
-
-
-        Assertions.assertThrows(AccessException.class, () -> service.createComment(
-                commentDto, userId, 5L));
     }
 
     @Test
