@@ -15,10 +15,8 @@ import ru.practicum.shareit.booking.exception.UserIdException;
 import ru.practicum.shareit.exception.AccessException;
 import ru.practicum.shareit.item.ItemJpaRepository;
 import ru.practicum.shareit.item.exception.ItemNotAvailableException;
-import ru.practicum.shareit.item.exception.ItemNotFoundException;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.user.UserJpaRepository;
-import ru.practicum.shareit.user.exception.UserNotFoundException;
 import ru.practicum.shareit.user.model.User;
 
 import java.time.LocalDateTime;
